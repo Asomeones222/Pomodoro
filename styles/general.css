@@ -1,0 +1,85 @@
+.btn {
+    all: unset;
+    cursor: pointer;
+}
+#new-todo-input {
+    padding-inline-start: 6rem;
+}
+.todo-list-item {
+    background: none;
+    border: none;
+    background-color: var(--white);
+    width: 54rem;
+    height: 6.4rem;
+    padding-inline-start: 1rem;
+    padding-inline-end: 1rem;
+    border-radius: 4px;
+}
+.todo-list-item:focus-visible {
+    outline: none;
+}
+li.todo-list-item {
+    border-bottom: 1px solid hsl(235, 30%, 92%);
+    border-radius: 0px;
+    display: grid;
+    align-items: center;
+    color: var(--Very-Dark-Grayish-Blue);
+}
+li.todo-list-item:last-child {
+    border-bottom: 0;
+    border-radius: 0px;
+}
+
+.todo-list-item--completed span {
+    color: var(--Light-Grayish-Blue);
+    text-decoration: line-through;
+}
+
+.todo-list-settings-btn {
+    cursor: pointer;
+}
+.todo-list-settings-btn:hover,
+.todo-list-settings-btn:focus-visible {
+    color: var(--Very-Dark-Grayish-Blue);
+}
+.todo-list-settings-active-status {
+    color: var(--blue);
+    font-weight: 700;
+}
+.todo-list-settings-active-status:hover,
+.todo-list-settings-active-status:focus-visible {
+    color: var(--blue);
+    border-bottom: 1px solid #68c9fa;
+}
+
+.todo-check {
+    grid-template-columns: 10fr 80fr 10fr;
+}
+.todo-check-btn {
+    border-radius: 50%;
+    border: 1px solid var(--Light-Grayish-Blue);
+    justify-self: center;
+    padding: 1rem;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.todo-check-btn:focus-visible {
+    border: 2px solid #68c9fa;
+}
+.todo-check-btn--checked {
+    border: none;
+    background-image: url("../images/icon-check.svg"),
+        linear-gradient(135deg, #68c9fa 0%, #ad72f1 100%);
+}
+.todo-cross-btn {
+    justify-self: center;
+    background-image: url("../images/icon-cross.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    /* border-radius: 50%; */
+    padding: 1rem;
+}
+.todo-cross-btn:focus-visible {
+    border-bottom: 2px solid #68c9fa;
+}

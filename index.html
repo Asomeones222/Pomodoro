@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png" />
+  <link rel="stylesheet" href="styles/general.css" />
+  <link rel="stylesheet" href="styles/style.css" />
+  <script defer src="script/Controller.js" type="module"></script>
+  <script defer src="script/main.js" type="module"></script>
+  <title>Todo app </title>
+</head>
+
+<body>
+  <nav id="main-nav">
+    <ul id="main-nav-list">
+      <li>
+        <h1 id="nav-header">TODO</h1>
+      </li>
+      <li>
+        <button id="mode-btn" class="btn">
+          <img src="images/icon-moon.svg" alt="Toggle color mode" />
+        </button>
+      </li>
+    </ul>
+  </nav>
+  <main>
+    <article id="todo-list-container">
+      <div id="todo-input-container">
+        <form action="" id="todo-form"><input type="text" name="" id="new-todo-input" placeholder="Create a new todo..."
+            class="todo-list-item" /></form>
+      </div>
+      <ul id="todo-list">
+        <li class="todo-list-item todo-check todo-list-item--completed">
+          <button class="todo-check-btn btn"></button>
+          <span>Test</span>
+          <button class="todo-cross-btn btn"></button>
+        </li>
+        <li class="todo-list-item todo-check">
+          <button class="todo-check-btn btn"></button>
+          <span>Test</span>
+          <button class="todo-cross-btn btn"></button>
+        </li>
+        <li class="todo-list-item todo-check">
+          <button class="todo-check-btn btn"></button>
+          <span>Test</span>
+          <button class="todo-cross-btn btn"></button>
+        </li>
+        <li id="todo-list-settings-container" class="todo-list-item">
+          <ul id="todo-list-settings">
+            <li id="todo-list-settings-remaning-items">
+              Nan items left
+            </li>
+            <ul id="todo-list-settings-status">
+              <li id="todo-list-settings-status-all">
+                <button class="btn todo-list-settings-btn todo-list-settings-active-status">
+                  All
+                </button>
+              </li>
+              <li id="todo-list-settings-status-active">
+                <button class="btn todo-list-settings-btn ">
+                  Active
+                </button>
+              </li>
+              <li id="todo-list-settings-status-completed">
+                <button class="btn todo-list-settings-btn">
+                  Completed
+                </button>
+              </li>
+            </ul>
+            <li id="todo-list-settings-clear">
+              <button class="btn todo-list-settings-btn">
+                Clear
+              </button>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </article>
+  </main>
+</body>
+
+</html>

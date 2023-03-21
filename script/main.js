@@ -55,6 +55,10 @@ const UI = {
     },
     classes: {
         todoItemCompleted: "todo-list-item--completed",
+        clearBtnClass: ".todo-list-settings-clear",
+        allItemsBtnClass: ".todo-list-settings-status-all",
+        activeItemsBtnClass: ".todo-list-settings-status-active",
+        completedItemsBtnClass: ".todo-list-settings-status-completed",
     },
     createTodoItemHTML(content, status = false) {
         const todoItemHTML = `<li class="todo-list-item todo-check ${
@@ -78,9 +82,8 @@ const UI = {
         if (!content) return;
 
         UI.appendedTodoItem(content, status);
+        UI.updateAfterDOMManipulation();
 
-        UI.updateUI();
-        APP.updateAPP();
         // halt timer stops user from adding items rapidly
         APP.halted = true;
         setTimeout(() => {
@@ -89,12 +92,11 @@ const UI = {
     },
     toggleTodoItemAsDone(todoItemElement) {
         todoItemElement.classList.toggle(UI.classes.todoItemCompleted);
-        APP.updateAPP();
+        UI.updateAfterDOMManipulation();
     },
     removeTodoItem(todoItemElement) {
         todoItemElement.remove();
-        UI.updateUI();
-        APP.updateAPP();
+        UI.updateAfterDOMManipulation();
     },
     updateRemainingItems() {
         UI.DOM.remaingItems.textContent = UI.DOM.todoList.childElementCount - 1;
@@ -108,6 +110,20 @@ const UI = {
             UI.appendedTodoItem(todoItem.content, todoItem.status);
         }
     },
+    retrieveItemsFromUI() {
+        const todoItems = [...UI.DOM.todoList.children];
+        todoItems.pop();
+        return todoItems;
+    },
+    clearItems() {
+        const todoItems = UI.retrieveItemsFromUI();
+        todoItems.forEach((item) => item.remove());
+        UI.updateAfterDOMManipulation();
+    },
+    updateAfterDOMManipulation() {
+        UI.updateUI();
+        APP.updateAPP();
+    },
     initEventListeners() {
         UI.DOM.todoForm.addEventListener("submit", (e) => {
             e.preventDefault();
@@ -119,13 +135,20 @@ const UI = {
             const todoItem = emitter.closest(".todo-list-item ");
 
             if (emitter.closest("#todo-list-settings-container")) {
-                if (emitter.closest(".todo-list-settings-status-all"))
-                    console.log("All btn pressed");
-                if (emitter.closest(".todo-list-settings-status-active"))
-                    console.log("Active btn pressed");
-                if (emitter.closest(".todo-list-settings-status-completed"))
-                    console.log("Completed btn pressed");
+                if (emitter.closest(UI.classes.clearBtnClass)) {
+                    console.log("Clear btn pressed");
+                    UI.clearItems();
+                    return;
+                }
 
+                if (emitter.closest(UI.classes.allItemsBtnClass))
+                    console.log("All btn pressed");
+
+                if (emitter.closest(UI.classes.activeItemsBtnClass))
+                    console.log("Active btn pressed");
+
+                if (emitter.closest(UI.classes.completedItemsBtnClass)) {
+                }
                 return;
             }
             if (emitter.closest(".todo-check-btn")) {

@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="styles/general.css" />
   <link rel="stylesheet" href="styles/style.css" />
   <script defer src="script/Controller.js" type="module"></script>
-  <script defer src="script/main.js" type="module"></script>
+  <script defer src="script/main.js"></script>
   <title>Todo app </title>
 </head>
 
@@ -32,43 +32,29 @@
   <main>
     <article id="todo-list-container">
       <div id="todo-input-container">
-        <form action="" id="todo-form"><input type="text" name="" id="new-todo-input" placeholder="Create a new todo..."
-            class="todo-list-item" /></form>
+        <form action="" id="todo-form" autocomplete="off"><input type="text" name="" id="new-todo-input"
+            placeholder="Create a new todo..." class="todo-list-item" /></form>
       </div>
       <ul id="todo-list">
-        <li class="todo-list-item todo-check todo-list-item--completed">
-          <button class="todo-check-btn btn"></button>
-          <span>Test</span>
-          <button class="todo-cross-btn btn"></button>
-        </li>
-        <li class="todo-list-item todo-check">
-          <button class="todo-check-btn btn"></button>
-          <span>Test</span>
-          <button class="todo-cross-btn btn"></button>
-        </li>
-        <li class="todo-list-item todo-check">
-          <button class="todo-check-btn btn"></button>
-          <span>Test</span>
-          <button class="todo-cross-btn btn"></button>
-        </li>
         <li id="todo-list-settings-container" class="todo-list-item">
           <ul id="todo-list-settings">
-            <li id="todo-list-settings-remaning-items">
-              Nan items left
+            <li id="">
+              <span id="todo-list-settings-remaning-items">Nan</span> items left
             </li>
             <ul id="todo-list-settings-status">
-              <li id="todo-list-settings-status-all">
-                <button class="btn todo-list-settings-btn todo-list-settings-active-status">
+              <li>
+                <button
+                  class="btn todo-list-settings-btn todo-list-settings-status-all todo-list-settings--status-active">
                   All
                 </button>
               </li>
-              <li id="todo-list-settings-status-active">
-                <button class="btn todo-list-settings-btn ">
+              <li>
+                <button class="btn todo-list-settings-btn todo-list-settings-status-active">
                   Active
                 </button>
               </li>
-              <li id="todo-list-settings-status-completed">
-                <button class="btn todo-list-settings-btn">
+              <li id="">
+                <button class="btn todo-list-settings-btn todo-list-settings-status-completed">
                   Completed
                 </button>
               </li>

@@ -1,34 +1,169 @@
-import { createTODOItem } from "./Controller.js";
-const todoForm = document.getElementById("todo-form");
-const todoItemInput = document.getElementById("new-todo-input");
-const todoList = document.getElementById("todo-list");
-const todoItemCompletedClass = "todo-list-item--completed";
+// import { createTodoItemHTML } from "./Controller.js";
 
-const toggleTODOItemDone = function (todoItemElement) {
-    todoItemElement.classList.toggle(todoItemCompletedClass);
+const APP = {
+    todoItems: [],
+    halted: false,
+    haltTime: 500,
+    clearTodoItems() {
+        APP.todoItems = [];
+        Model.save("todo-items", []);
+    },
+    todoItemFactory(content, status) {
+        return {
+            content,
+            status,
+        };
+    },
+    createSaveTodoItemObject(content, status) {
+        APP.todoItems.push(APP.todoItemFactory(content, status));
+        Model.save("todo-items", APP.todoItems);
+    },
+    trackTodoList() {
+        // Loops through the children of the todo list element in the DOM and saves them
+        // Note we skip the last one since it's the settings
+        APP.clearTodoItems();
+        const todoList = [...UI.DOM.todoList.children];
+        for (let i = 0; i < todoList.length - 1; i++) {
+            const todoItem = todoList[i];
+            const todoItemContent = todoItem.textContent.trim();
+            const todoItemStatus = todoItem.classList.contains(
+                "todo-list-item--completed"
+            );
+            APP.createSaveTodoItemObject(todoItemContent, todoItemStatus);
+        }
+    },
+    importTodoList() {
+        APP.todoItems = Model.query("todo-items");
+    },
+    updateAPP() {
+        APP.trackTodoList();
+    },
+    init() {
+        APP.importTodoList();
+        UI.initUI();
+    },
 };
 
-todoForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const todoItem = createTODOItem(todoItemInput.value);
-    todoList.insertAdjacentHTML("afterbegin", todoItem);
-});
+const UI = {
+    DOM: {
+        todoForm: document.getElementById("todo-form"),
+        todoItemInput: document.getElementById("new-todo-input"),
+        todoList: document.getElementById("todo-list"),
+        remaingItems: document.getElementById(
+            "todo-list-settings-remaning-items"
+        ),
+    },
+    classes: {
+        todoItemCompleted: "todo-list-item--completed",
+    },
+    createTodoItemHTML(content, status = false) {
+        const todoItemHTML = `<li class="todo-list-item todo-check ${
+            status ? UI.classes.todoItemCompleted : ""
+        }">
+          <button class="todo-check-btn btn"></button>
+          <span>${content}</span>
+          <button class="todo-cross-btn btn"></button>
+        </li>`;
+        return todoItemHTML;
+    },
+    appendedTodoItem(content, status = false) {
+        // Can be used by the app to add the items into the UI
+        const todoItem = UI.createTodoItemHTML(content, status);
+        UI.DOM.todoList.insertAdjacentHTML("afterbegin", todoItem);
+        UI.DOM.todoItemInput.value = "";
+    },
+    appendedTodoItemFromUser(content, status = false) {
+        // Takes input from user so validation is crucial
+        if (APP.halted) return;
+        if (!content) return;
 
-todoList.addEventListener("click", (e) => {
-    const emitter = e.target;
+        UI.appendedTodoItem(content, status);
 
-    if (emitter.closest("#todo-list-settings-container")) {
-        console.log("Settings invoked");
-        return;
-    }
-    if (emitter.closest(".todo-check-btn")) {
-        console.log("Mark this as done");
-        toggleTODOItemDone(emitter.closest(".todo-list-item "));
-        return;
-    }
-    if (emitter.closest(".todo-cross-btn")) {
-        console.log("Delete this");
-        console.log(emitter.closest(".todo-list-item"));
-        return;
-    }
-});
+        UI.updateUI();
+        APP.updateAPP();
+        // halt timer stops user from adding items rapidly
+        APP.halted = true;
+        setTimeout(() => {
+            APP.halted = false;
+        }, APP.haltTime);
+    },
+    toggleTodoItemAsDone(todoItemElement) {
+        todoItemElement.classList.toggle(UI.classes.todoItemCompleted);
+        APP.updateAPP();
+    },
+    removeTodoItem(todoItemElement) {
+        todoItemElement.remove();
+        UI.updateUI();
+        APP.updateAPP();
+    },
+    updateRemainingItems() {
+        UI.DOM.remaingItems.textContent = UI.DOM.todoList.childElementCount - 1;
+    },
+    loadTodoItemsIntoUI() {
+        console.log(APP.todoItems);
+        // Loop backwards to preserve the order of the items
+        for (let i = APP.todoItems.length - 1; i > -1; --i) {
+            const todoItem = APP.todoItems[i];
+            console.log(todoItem);
+            UI.appendedTodoItem(todoItem.content, todoItem.status);
+        }
+    },
+    initEventListeners() {
+        UI.DOM.todoForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            UI.appendedTodoItemFromUser(UI.DOM.todoItemInput.value.trim());
+        });
+
+        UI.DOM.todoList.addEventListener("click", (e) => {
+            const emitter = e.target;
+            const todoItem = emitter.closest(".todo-list-item ");
+
+            if (emitter.closest("#todo-list-settings-container")) {
+                if (emitter.closest(".todo-list-settings-status-all"))
+                    console.log("All btn pressed");
+                if (emitter.closest(".todo-list-settings-status-active"))
+                    console.log("Active btn pressed");
+                if (emitter.closest(".todo-list-settings-status-completed"))
+                    console.log("Completed btn pressed");
+
+                return;
+            }
+            if (emitter.closest(".todo-check-btn")) {
+                // Checks if check-as-done btn was pressed
+                UI.toggleTodoItemAsDone(todoItem);
+                return;
+            }
+            if (emitter.closest(".todo-cross-btn")) {
+                // Checks if delete btn was pressed
+                UI.removeTodoItem(todoItem);
+                return;
+            }
+        });
+    },
+
+    updateUI() {
+        UI.updateRemainingItems();
+    },
+    initUI() {
+        UI.initEventListeners();
+        UI.loadTodoItemsIntoUI();
+        UI.updateUI();
+    },
+};
+
+const Model = {
+    save(key, value) {
+        // key must be a string value will be stringified using JSON
+
+        // const data = {};
+        // data[key] = value;
+        window.localStorage.setItem(key, JSON.stringify(value));
+    },
+    query(key) {
+        // chrome.storage.local.get(key, (data) => {
+        // console.log(data);
+        // });
+        return JSON.parse(window.localStorage.getItem(key));
+    },
+};
+APP.init();

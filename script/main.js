@@ -20,10 +20,9 @@ const APP = {
     },
     trackTodoList() {
         // Loops through the children of the todo list element in the DOM and saves them
-        // Note we skip the last one since it's the settings
         APP.clearTodoItems();
-        const todoList = [...UI.DOM.todoList.children];
-        for (let i = 0; i < todoList.length - 1; i++) {
+        const todoList = UI.retrieveItemsFromUI();
+        for (let i = 0; i < todoList.length; i++) {
             const todoItem = todoList[i];
             const todoItemContent = todoItem.textContent.trim();
             const todoItemStatus = todoItem.classList.contains(
@@ -49,6 +48,12 @@ const UI = {
         todoForm: document.getElementById("todo-form"),
         todoItemInput: document.getElementById("new-todo-input"),
         todoList: document.getElementById("todo-list"),
+        settingContainer: document.getElementById(
+            "todo-list-settings-container"
+        ),
+        filterSettingContainer: document.getElementById(
+            "todo-list-settings-status"
+        ),
         remaingItems: document.getElementById(
             "todo-list-settings-remaning-items"
         ),
@@ -59,6 +64,7 @@ const UI = {
         allItemsBtnClass: ".todo-list-settings-status-all",
         activeItemsBtnClass: ".todo-list-settings-status-active",
         completedItemsBtnClass: ".todo-list-settings-status-completed",
+        activeSettingsBtnClass: "todo-list-settings--status-active",
     },
     createTodoItemHTML(content, status = false) {
         const todoItemHTML = `<li class="todo-list-item todo-check ${
@@ -99,7 +105,10 @@ const UI = {
         UI.updateAfterDOMManipulation();
     },
     updateRemainingItems() {
-        UI.DOM.remaingItems.textContent = UI.DOM.todoList.childElementCount - 1;
+        // UI.DOM.remaingItems.textContent = UI.DOM.todoList.childElementCount - 1;
+        let count = 0;
+        APP.todoItems.forEach((item) => !item.status && count++);
+        UI.DOM.remaingItems.textContent = count;
     },
     loadTodoItemsIntoUI() {
         console.log(APP.todoItems);
@@ -112,17 +121,39 @@ const UI = {
     },
     retrieveItemsFromUI() {
         const todoItems = [...UI.DOM.todoList.children];
+        // We skip the last one since it's the settings element
         todoItems.pop();
         return todoItems;
     },
-    clearItems() {
+    filterByActiveItems() {
+        UI.filterTodoBy((item) => !item.status);
+    },
+    filterByCompletedItems() {
+        UI.filterTodoBy((item) => item.status);
+    },
+    filterByAllItems() {
+        UI.filterTodoBy(() => true);
+    },
+    filterTodoBy(callback) {
+        UI.clearItemsFromUI();
+        const todoItems = [...APP.todoItems].reverse();
+        todoItems.forEach((item) => {
+            if (callback(item)) UI.appendedTodoItem(item.content, item.status);
+        });
+        UI.updateUI();
+    },
+    clearItemsFromUI() {
         const todoItems = UI.retrieveItemsFromUI();
         todoItems.forEach((item) => item.remove());
+        UI.updateUI();
+    },
+    deleteAllItems() {
+        UI.clearItemsFromUI();
         UI.updateAfterDOMManipulation();
     },
     updateAfterDOMManipulation() {
-        UI.updateUI();
         APP.updateAPP();
+        UI.updateUI();
     },
     initEventListeners() {
         UI.DOM.todoForm.addEventListener("submit", (e) => {
@@ -137,17 +168,36 @@ const UI = {
             if (emitter.closest("#todo-list-settings-container")) {
                 if (emitter.closest(UI.classes.clearBtnClass)) {
                     console.log("Clear btn pressed");
-                    UI.clearItems();
+                    UI.deleteAllItems();
                     return;
                 }
+                UI.DOM.filterSettingContainer
+                    .querySelectorAll("button")
+                    .forEach((btn) => {
+                        btn.classList.remove(UI.classes.activeSettingsBtnClass);
+                    });
 
-                if (emitter.closest(UI.classes.allItemsBtnClass))
+                if (emitter.closest(UI.classes.allItemsBtnClass)) {
+                    const btn = emitter.closest(UI.classes.allItemsBtnClass);
+                    btn.classList.add(UI.classes.activeSettingsBtnClass);
+                    UI.filterByAllItems();
                     console.log("All btn pressed");
+                }
 
-                if (emitter.closest(UI.classes.activeItemsBtnClass))
+                if (emitter.closest(UI.classes.activeItemsBtnClass)) {
+                    const btn = emitter.closest(UI.classes.activeItemsBtnClass);
+                    btn.classList.add(UI.classes.activeSettingsBtnClass);
+                    UI.filterByActiveItems();
                     console.log("Active btn pressed");
+                }
 
                 if (emitter.closest(UI.classes.completedItemsBtnClass)) {
+                    const btn = emitter.closest(
+                        UI.classes.completedItemsBtnClass
+                    );
+                    btn.classList.add(UI.classes.activeSettingsBtnClass);
+                    UI.filterByCompletedItems();
+                    console.log("Completed btn pressed");
                 }
                 return;
             }

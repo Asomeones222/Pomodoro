@@ -57,6 +57,17 @@ const UI = {
         remaingItems: document.getElementById(
             "todo-list-settings-remaning-items"
         ),
+        settings: {
+            filterByAllItemsBtn: document.getElementById(
+                "todo-list-settings-status-all"
+            ),
+            filterByActiveItemsBtn: document.getElementById(
+                "todo-list-settings-status-active"
+            ),
+            filterByCompletedItemsBtn: document.getElementById(
+                "todo-list-settings-status-completed"
+            ),
+        },
     },
     classes: {
         todoItemCompleted: "todo-list-item--completed",
@@ -65,6 +76,7 @@ const UI = {
         activeItemsBtnClass: ".todo-list-settings-status-active",
         completedItemsBtnClass: ".todo-list-settings-status-completed",
         activeSettingsBtnClass: "todo-list-settings--status-active",
+        settingsContainerID: "#todo-list-settings-container",
     },
     createTodoItemHTML(content, status = false) {
         const todoItemHTML = `<li class="todo-list-item todo-check ${
@@ -86,7 +98,7 @@ const UI = {
         // Takes input from user so validation is crucial
         if (APP.halted) return;
         if (!content) return;
-
+        UI.eventHandlers.settingsFilterByAllBtnHandler();
         UI.appendedTodoItem(content, status);
         UI.updateAfterDOMManipulation();
 
@@ -126,15 +138,15 @@ const UI = {
         return todoItems;
     },
     filterByActiveItems() {
-        UI.filterTodoBy((item) => !item.status);
+        UI.filterTodoItemsBy((item) => !item.status);
     },
     filterByCompletedItems() {
-        UI.filterTodoBy((item) => item.status);
+        UI.filterTodoItemsBy((item) => item.status);
     },
     filterByAllItems() {
-        UI.filterTodoBy(() => true);
+        UI.filterTodoItemsBy(() => true);
     },
-    filterTodoBy(callback) {
+    filterTodoItemsBy(callback) {
         UI.clearItemsFromUI();
         const todoItems = [...APP.todoItems].reverse();
         todoItems.forEach((item) => {
@@ -155,50 +167,69 @@ const UI = {
         APP.updateAPP();
         UI.updateUI();
     },
+    settingsContainerRemoveClickStyle() {
+        UI.DOM.filterSettingContainer
+            .querySelectorAll("button")
+            .forEach((btn) => {
+                btn.classList.remove(UI.classes.activeSettingsBtnClass);
+            });
+    },
+    addClickedStyleToSettingsBtn(btn) {
+        UI.settingsContainerRemoveClickStyle();
+        btn.classList.add(UI.classes.activeSettingsBtnClass);
+    },
+    eventHandlers: {
+        todoFormHandler() {
+            UI.appendedTodoItemFromUser(UI.DOM.todoItemInput.value.trim());
+        },
+        settingsClearBtnHandler() {
+            console.log("Clear btn pressed");
+            UI.deleteAllItems();
+        },
+
+        settingsFilterByAllBtnHandler() {
+            UI.addClickedStyleToSettingsBtn(
+                UI.DOM.settings.filterByAllItemsBtn
+            );
+            UI.filterByAllItems();
+        },
+        settingsFilterByActiveBtnHandler() {
+            UI.addClickedStyleToSettingsBtn(
+                UI.DOM.settings.filterByActiveItemsBtn
+            );
+
+            UI.filterByActiveItems();
+        },
+        settingsFilterByCompletedBtnHandler() {
+            UI.addClickedStyleToSettingsBtn(
+                UI.DOM.settings.filterByCompletedItemsBtn
+            );
+            UI.filterByCompletedItems();
+        },
+    },
+
     initEventListeners() {
         UI.DOM.todoForm.addEventListener("submit", (e) => {
             e.preventDefault();
-            UI.appendedTodoItemFromUser(UI.DOM.todoItemInput.value.trim());
+            UI.eventHandlers.todoFormHandler();
         });
 
         UI.DOM.todoList.addEventListener("click", (e) => {
             const emitter = e.target;
             const todoItem = emitter.closest(".todo-list-item ");
 
-            if (emitter.closest("#todo-list-settings-container")) {
-                if (emitter.closest(UI.classes.clearBtnClass)) {
-                    console.log("Clear btn pressed");
-                    UI.deleteAllItems();
-                    return;
-                }
-                UI.DOM.filterSettingContainer
-                    .querySelectorAll("button")
-                    .forEach((btn) => {
-                        btn.classList.remove(UI.classes.activeSettingsBtnClass);
-                    });
+            if (emitter.closest(UI.classes.settingsContainerID)) {
+                if (emitter.closest(UI.classes.clearBtnClass))
+                    UI.eventHandlers.settingsClearBtnHandler();
 
-                if (emitter.closest(UI.classes.allItemsBtnClass)) {
-                    const btn = emitter.closest(UI.classes.allItemsBtnClass);
-                    btn.classList.add(UI.classes.activeSettingsBtnClass);
-                    UI.filterByAllItems();
-                    console.log("All btn pressed");
-                }
+                if (emitter.closest(UI.classes.allItemsBtnClass))
+                    UI.eventHandlers.settingsFilterByAllBtnHandler();
 
-                if (emitter.closest(UI.classes.activeItemsBtnClass)) {
-                    const btn = emitter.closest(UI.classes.activeItemsBtnClass);
-                    btn.classList.add(UI.classes.activeSettingsBtnClass);
-                    UI.filterByActiveItems();
-                    console.log("Active btn pressed");
-                }
+                if (emitter.closest(UI.classes.activeItemsBtnClass))
+                    UI.eventHandlers.settingsFilterByActiveBtnHandler();
 
-                if (emitter.closest(UI.classes.completedItemsBtnClass)) {
-                    const btn = emitter.closest(
-                        UI.classes.completedItemsBtnClass
-                    );
-                    btn.classList.add(UI.classes.activeSettingsBtnClass);
-                    UI.filterByCompletedItems();
-                    console.log("Completed btn pressed");
-                }
+                if (emitter.closest(UI.classes.completedItemsBtnClass))
+                    UI.eventHandlers.settingsFilterByCompletedBtnHandler();
                 return;
             }
             if (emitter.closest(".todo-check-btn")) {

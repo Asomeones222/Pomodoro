@@ -3,6 +3,30 @@ const APP = {
     storageKey: "todo-items",
     halted: false,
     haltTime: 500,
+    timer: {
+        running: false,
+        timerInterval: null,
+        isStudySession: true,
+        studyTime: 25 * 60,
+        restTime: 5 * 60,
+        elapsedTime: 0,
+        getCurrentTime() {
+            if (APP.timer.isStudySession)
+                return APP.timer.studyTime - APP.timer.elapsedTime;
+            else return APP.timer.restTime - APP.timer.elapsedTime;
+        },
+        startTimer() {
+            APP.timer.running = true;
+            APP.timer.timerInterval = setInterval(() => {
+                APP.timer.elapsedTime++;
+                if (APP.timer.getCurrentTime() === 0) APP.timer.pauseTimer();
+            }, 1000);
+        },
+        pauseTimer() {
+            clearInterval(APP.timer.timerInterval);
+            APP.timer.running = false;
+        },
+    },
     getItems() {
         return APP._items;
     },
@@ -38,6 +62,10 @@ const APP = {
 
     importItemsFromStorage() {
         APP._items = Model.query(APP.storageKey);
+        if (APP._items === null) {
+            APP._items = [];
+            APP.exportItemsToStorage();
+        }
     },
     exportItemsToStorage() {
         Model.save(APP.storageKey, APP._items);
@@ -51,6 +79,9 @@ const APP = {
 const UI = {
     filterMethod: () => true,
     DOM: {
+        timerBtn: document.getElementById("timer-btn"),
+        timerMinutes: document.getElementById("timer-minutes"),
+        timerSeconds: document.getElementById("timer-seconds"),
         todoForm: document.getElementById("todo-form"),
         todoItemInput: document.getElementById("new-todo-input"),
         todoList: document.getElementById("todo-list"),
@@ -84,13 +115,38 @@ const UI = {
         activeSettingsBtnClass: "todo-list-settings--status-active",
         settingsContainerID: "#todo-list-settings-container",
     },
+    helpers: {
+        formatTime(timeInSeconds) {
+            const minutes = Math.trunc(timeInSeconds / 60);
+            const seconds = timeInSeconds % 60;
+            return {
+                minutes: `${minutes}`.padStart(2, 0),
+                seconds: `${seconds}`.padStart(2, 0),
+            };
+        },
+    },
+    updateTimer() {
+        setInterval(() => {
+            const time = APP.timer.getCurrentTime();
+            UI.DOM.timerMinutes.textContent =
+                UI.helpers.formatTime(time).minutes;
+            UI.DOM.timerSeconds.textContent =
+                UI.helpers.formatTime(time).seconds;
+        });
+    },
     createItemHTML(content, id, status = false) {
         console.log(content, status);
+        const maxLength = 36;
+        const title = content.length > maxLength ? content : "";
+        const truncatedContent =
+            content.length > maxLength
+                ? content.slice(0, maxLength).trim() + "..."
+                : content;
         const todoItemHTML = `<li class="todo-list-item todo-check ${
             status ? UI.classes.todoItemCompleted : ""
         }" data-id="${id}">
           <button class="todo-check-btn btn"></button>
-          <span>${content}</span>
+          <span title="${title}">${truncatedContent}</span>
           <button class="todo-cross-btn btn"></button>
         </li>`;
         return todoItemHTML;
@@ -111,7 +167,7 @@ const UI = {
         APP.toggleItemAsDone(itemID);
         console.log(itemElement);
         itemElement.classList.toggle(UI.classes.todoItemCompleted);
-        UI.updateRemainingItems();
+        UI.updateUI();
     },
     deleteItem(itemID) {
         console.log(itemID);
@@ -176,6 +232,16 @@ const UI = {
         btn.classList.add(UI.classes.activeSettingsBtnClass);
     },
     eventHandlers: {
+        timerBtnHandler() {
+            if (!APP.timer.running) {
+                APP.timer.startTimer();
+                UI.updateTimer();
+                UI.DOM.timerBtn.textContent = "Pause";
+            } else {
+                APP.timer.pauseTimer();
+                UI.DOM.timerBtn.textContent = "Start";
+            }
+        },
         todoFormHandler() {
             // UI.appendedItemToContainerFromUser(UI.DOM.todoItemInput.value.trim());
             // *****
@@ -217,6 +283,9 @@ const UI = {
     },
 
     initEventListeners() {
+        UI.DOM.timerBtn.addEventListener("click", () => {
+            UI.eventHandlers.timerBtnHandler();
+        });
         UI.DOM.todoForm.addEventListener("submit", (e) => {
             e.preventDefault();
             UI.eventHandlers.todoFormHandler();

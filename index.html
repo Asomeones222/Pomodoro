@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Text:wght@700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png" />
   <link rel="stylesheet" href="styles/general.css" />
   <link rel="stylesheet" href="styles/style.css" />
@@ -20,7 +23,7 @@
   <nav id="main-nav">
     <ul id="main-nav-list">
       <li>
-        <h1 id="nav-header">TODO</h1>
+        <h1 id="nav-header">POMODORO</h1>
       </li>
       <li>
         <button id="mode-btn" class="btn">
@@ -30,6 +33,15 @@
     </ul>
   </nav>
   <main>
+    <article id="timer">
+      <div id="timer-minutes" class="timer-container">
+        <span id="timer-minutes-time">25</span>
+      </div>
+      <div id="timer-seconds" class="timer-container">
+        <span id="timer-minutes-time">00</span>
+      </div>
+      <button id="timer-btn" class="btn todo-list-settings-btn">Start</button>
+    </article>
     <article id="todo-list-container">
       <div id="todo-input-container">
         <form action="" id="todo-form" autocomplete="off"><input type="text" name="" id="new-todo-input"

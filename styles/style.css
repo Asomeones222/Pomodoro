@@ -118,6 +118,11 @@ main {
     text-align: center;
     color: var(--Very-Dark-Grayish-Blue) !important;
     /* border-radius: 4px; */
+    transition: border-bottom 0.1s;
+}
+#timer-btn:hover,
+#timer-btn:focus-visible {
+    border-bottom: 2px solid var(--blue);
 }
 .timer-container {
     align-self: flex-end;
@@ -131,6 +136,7 @@ main {
     align-items: center;
     text-align: center;
     width: 15rem;
+    height: 15rem;
     aspect-ratio: 1;
     background: #f5f5f5;
 

@@ -7,7 +7,7 @@ const APP = {
         running: false,
         timerInterval: null,
         isStudySession: true,
-        studyTime: 25 * 60,
+        studyTime: (1 / 6) * 60,
         restTime: 5 * 60,
         elapsedTime: 0,
         getCurrentTime() {
@@ -19,7 +19,7 @@ const APP = {
             APP.timer.running = true;
             APP.timer.timerInterval = setInterval(() => {
                 APP.timer.elapsedTime++;
-                if (APP.timer.getCurrentTime() === 0) APP.timer.pauseTimer();
+                if (APP.timer.getCurrentTime() <= 0) APP.timer.pauseTimer();
             }, 1000);
         },
         pauseTimer() {
@@ -125,15 +125,31 @@ const UI = {
             };
         },
     },
+    timerInterval: 0,
+    startTimer() {
+        APP.timer.startTimer();
+        UI.updateTimer();
+        UI.DOM.timerBtn.textContent = "Pause";
+    },
+    pauseTimer() {
+        clearInterval(UI.timerInterval);
+        APP.timer.pauseTimer();
+        UI.DOM.timerBtn.textContent = "Start";
+    },
     updateTimer() {
-        setInterval(() => {
+        UI.timerInterval = setInterval(() => {
             const time = APP.timer.getCurrentTime();
+            if (time <= 0) {
+                UI.timerConcluded();
+                UI.pauseTimer();
+            }
             UI.DOM.timerMinutes.textContent =
                 UI.helpers.formatTime(time).minutes;
             UI.DOM.timerSeconds.textContent =
                 UI.helpers.formatTime(time).seconds;
         });
     },
+    timerConcluded() {},
     createItemHTML(content, id, status = false) {
         console.log(content, status);
         const maxLength = 36;
@@ -234,12 +250,9 @@ const UI = {
     eventHandlers: {
         timerBtnHandler() {
             if (!APP.timer.running) {
-                APP.timer.startTimer();
-                UI.updateTimer();
-                UI.DOM.timerBtn.textContent = "Pause";
+                UI.startTimer();
             } else {
-                APP.timer.pauseTimer();
-                UI.DOM.timerBtn.textContent = "Start";
+                UI.pauseTimer();
             }
         },
         todoFormHandler() {

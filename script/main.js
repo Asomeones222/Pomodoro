@@ -1,49 +1,55 @@
-// import { createTodoItemHTML } from "./Controller.js";
-
 const APP = {
-    todoItems: [],
+    _items: [],
+    storageKey: "todo-items",
     halted: false,
     haltTime: 500,
-    clearTodoItems() {
-        APP.todoItems = [];
-        Model.save("todo-items", []);
+    getItems() {
+        return APP._items;
     },
-    todoItemFactory(content, status) {
+    getItemsReversed() {
+        return [...APP._items].reverse();
+    },
+    createItem(content, status = false) {
+        const item = APP.itemFactory(content, status);
+        APP._items.push(item);
+        APP.exportItemsToStorage();
+    },
+    deleteItem(itemID) {
+        APP._items = APP._items.filter((item) => item.id !== itemID);
+        APP.exportItemsToStorage();
+    },
+    toggleItemAsDone(itemID) {
+        const item =
+            APP._items[APP._items.findIndex((item) => item.id === itemID)];
+        item.status = !item.status;
+        APP.exportItemsToStorage();
+    },
+    clearItems() {
+        APP._items = [];
+        APP.exportItemsToStorage();
+    },
+    itemFactory(content, status) {
         return {
             content,
             status,
+            id: `${Math.floor(Date.now() * Math.random())}`,
         };
     },
-    createSaveTodoItemObject(content, status) {
-        APP.todoItems.push(APP.todoItemFactory(content, status));
-        Model.save("todo-items", APP.todoItems);
+
+    importItemsFromStorage() {
+        APP._items = Model.query(APP.storageKey);
     },
-    trackTodoList() {
-        // Loops through the children of the todo list element in the DOM and saves them
-        APP.clearTodoItems();
-        const todoList = UI.retrieveItemsFromUI();
-        for (let i = 0; i < todoList.length; i++) {
-            const todoItem = todoList[i];
-            const todoItemContent = todoItem.textContent.trim();
-            const todoItemStatus = todoItem.classList.contains(
-                "todo-list-item--completed"
-            );
-            APP.createSaveTodoItemObject(todoItemContent, todoItemStatus);
-        }
-    },
-    importTodoList() {
-        APP.todoItems = Model.query("todo-items");
-    },
-    updateAPP() {
-        APP.trackTodoList();
+    exportItemsToStorage() {
+        Model.save(APP.storageKey, APP._items);
     },
     init() {
-        APP.importTodoList();
+        APP.importItemsFromStorage();
         UI.initUI();
     },
 };
 
 const UI = {
+    filterMethod: () => true,
     DOM: {
         todoForm: document.getElementById("todo-form"),
         todoItemInput: document.getElementById("new-todo-input"),
@@ -78,58 +84,56 @@ const UI = {
         activeSettingsBtnClass: "todo-list-settings--status-active",
         settingsContainerID: "#todo-list-settings-container",
     },
-    createTodoItemHTML(content, status = false) {
+    createItemHTML(content, id, status = false) {
+        console.log(content, status);
         const todoItemHTML = `<li class="todo-list-item todo-check ${
             status ? UI.classes.todoItemCompleted : ""
-        }">
+        }" data-id="${id}">
           <button class="todo-check-btn btn"></button>
           <span>${content}</span>
           <button class="todo-cross-btn btn"></button>
         </li>`;
         return todoItemHTML;
     },
-    appendedTodoItem(content, status = false) {
+    appendedItemToContainer(content, id, status = false) {
         // Can be used by the app to add the items into the UI
-        const todoItem = UI.createTodoItemHTML(content, status);
-        UI.DOM.todoList.insertAdjacentHTML("afterbegin", todoItem);
+        const item = UI.createItemHTML(content, id, status);
+        UI.DOM.todoList.insertAdjacentHTML("afterbegin", item);
+        UI.clearForm();
+    },
+    clearForm() {
         UI.DOM.todoItemInput.value = "";
     },
-    appendedTodoItemFromUser(content, status = false) {
-        // Takes input from user so validation is crucial
-        if (APP.halted) return;
-        if (!content) return;
-        UI.eventHandlers.settingsFilterByAllBtnHandler();
-        UI.appendedTodoItem(content, status);
-        UI.updateAfterDOMManipulation();
-
-        // halt timer stops user from adding items rapidly
-        APP.halted = true;
-        setTimeout(() => {
-            APP.halted = false;
-        }, APP.haltTime);
+    toggleItemAsDone(itemID) {
+        const itemElement = UI.DOM.todoList.querySelector(
+            `[data-id='${itemID}']`
+        );
+        APP.toggleItemAsDone(itemID);
+        console.log(itemElement);
+        itemElement.classList.toggle(UI.classes.todoItemCompleted);
+        UI.updateRemainingItems();
     },
-    toggleTodoItemAsDone(todoItemElement) {
-        todoItemElement.classList.toggle(UI.classes.todoItemCompleted);
-        UI.updateAfterDOMManipulation();
-    },
-    removeTodoItem(todoItemElement) {
-        todoItemElement.remove();
-        UI.updateAfterDOMManipulation();
+    deleteItem(itemID) {
+        console.log(itemID);
+        APP.deleteItem(itemID);
+        UI.updateUI();
     },
     updateRemainingItems() {
         // UI.DOM.remaingItems.textContent = UI.DOM.todoList.childElementCount - 1;
         let count = 0;
-        APP.todoItems.forEach((item) => !item.status && count++);
+        APP.getItems().forEach((item) => !item.status && count++);
         UI.DOM.remaingItems.textContent = count;
     },
-    loadTodoItemsIntoUI() {
-        console.log(APP.todoItems);
-        // Loop backwards to preserve the order of the items
-        for (let i = APP.todoItems.length - 1; i > -1; --i) {
-            const todoItem = APP.todoItems[i];
-            console.log(todoItem);
-            UI.appendedTodoItem(todoItem.content, todoItem.status);
-        }
+    loadItemsIntoUI() {
+        UI.clearItemFromUI();
+        APP.getItems().forEach((item) => {
+            if (UI.filterMethod(item))
+                UI.appendedItemToContainer(item.content, item.id, item.status);
+        });
+    },
+    clearItemFromUI() {
+        const items = UI.retrieveItemsFromUI();
+        items.forEach((item) => item.remove());
     },
     retrieveItemsFromUI() {
         const todoItems = [...UI.DOM.todoList.children];
@@ -138,20 +142,16 @@ const UI = {
         return todoItems;
     },
     filterByActiveItems() {
-        UI.filterTodoItemsBy((item) => !item.status);
+        UI.filterItemsBy((item) => !item.status);
     },
     filterByCompletedItems() {
-        UI.filterTodoItemsBy((item) => item.status);
+        UI.filterItemsBy((item) => item.status);
     },
     filterByAllItems() {
-        UI.filterTodoItemsBy(() => true);
+        UI.filterItemsBy(() => true);
     },
-    filterTodoItemsBy(callback) {
-        UI.clearItemsFromUI();
-        const todoItems = [...APP.todoItems].reverse();
-        todoItems.forEach((item) => {
-            if (callback(item)) UI.appendedTodoItem(item.content, item.status);
-        });
+    filterItemsBy(callback) {
+        UI.filterMethod = callback;
         UI.updateUI();
     },
     clearItemsFromUI() {
@@ -161,10 +161,7 @@ const UI = {
     },
     deleteAllItems() {
         UI.clearItemsFromUI();
-        UI.updateAfterDOMManipulation();
-    },
-    updateAfterDOMManipulation() {
-        APP.updateAPP();
+        APP.clearItems();
         UI.updateUI();
     },
     settingsContainerRemoveClickStyle() {
@@ -180,7 +177,12 @@ const UI = {
     },
     eventHandlers: {
         todoFormHandler() {
-            UI.appendedTodoItemFromUser(UI.DOM.todoItemInput.value.trim());
+            // UI.appendedItemToContainerFromUser(UI.DOM.todoItemInput.value.trim());
+            // *****
+            if (!UI.DOM.todoItemInput.value.trim()) return;
+            APP.createItem(UI.DOM.todoItemInput.value.trim());
+            UI.clearForm();
+            UI.updateUI();
         },
         settingsClearBtnHandler() {
             console.log("Clear btn pressed");
@@ -206,6 +208,12 @@ const UI = {
             );
             UI.filterByCompletedItems();
         },
+        removeItemBtnHandler(itemID) {
+            UI.deleteItem(itemID);
+        },
+        toggleItemAsDoneBtnHandler(itemID) {
+            UI.toggleItemAsDone(itemID);
+        },
     },
 
     initEventListeners() {
@@ -216,7 +224,7 @@ const UI = {
 
         UI.DOM.todoList.addEventListener("click", (e) => {
             const emitter = e.target;
-            const todoItem = emitter.closest(".todo-list-item ");
+            const item = emitter.closest(".todo-list-item ");
 
             if (emitter.closest(UI.classes.settingsContainerID)) {
                 if (emitter.closest(UI.classes.clearBtnClass))
@@ -234,23 +242,23 @@ const UI = {
             }
             if (emitter.closest(".todo-check-btn")) {
                 // Checks if check-as-done btn was pressed
-                UI.toggleTodoItemAsDone(todoItem);
+                UI.eventHandlers.toggleItemAsDoneBtnHandler(item.dataset.id);
                 return;
             }
             if (emitter.closest(".todo-cross-btn")) {
                 // Checks if delete btn was pressed
-                UI.removeTodoItem(todoItem);
+                UI.eventHandlers.removeItemBtnHandler(item.dataset.id);
                 return;
             }
         });
     },
 
     updateUI() {
+        UI.loadItemsIntoUI();
         UI.updateRemainingItems();
     },
     initUI() {
         UI.initEventListeners();
-        UI.loadTodoItemsIntoUI();
         UI.updateUI();
     },
 };
@@ -264,9 +272,6 @@ const Model = {
         window.localStorage.setItem(key, JSON.stringify(value));
     },
     query(key) {
-        // chrome.storage.local.get(key, (data) => {
-        // console.log(data);
-        // });
         return JSON.parse(window.localStorage.getItem(key));
     },
 };

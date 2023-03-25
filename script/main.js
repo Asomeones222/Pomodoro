@@ -6,14 +6,28 @@ const APP = {
     timer: {
         running: false,
         timerInterval: null,
-        isStudySession: true,
-        studyTime: (1 / 6) * 60,
+        _isStudySession: true,
+        get isStudySession() {
+            return APP.timer._isStudySession;
+        },
+        set isStudySession(x) {
+            APP.timer._isStudySession = x;
+            if (APP.timer.isStudySession)
+                APP.timer.currentTime = APP.timer.studyTime;
+            else APP.timer.currentTime = APP.timer.restTime;
+            APP.timer.resetTimer();
+        },
+        studyTime: 10 * 60,
         restTime: 5 * 60,
+        currentTime: 0,
         elapsedTime: 0,
         getCurrentTime() {
+            return APP.timer.currentTime - APP.timer.elapsedTime;
+        },
+        initTimer() {
             if (APP.timer.isStudySession)
-                return APP.timer.studyTime - APP.timer.elapsedTime;
-            else return APP.timer.restTime - APP.timer.elapsedTime;
+                APP.timer.currentTime = APP.timer.studyTime;
+            else APP.timer.currentTime = APP.timer.restTime;
         },
         startTimer() {
             APP.timer.running = true;
@@ -25,6 +39,10 @@ const APP = {
         pauseTimer() {
             clearInterval(APP.timer.timerInterval);
             APP.timer.running = false;
+        },
+        resetTimer() {
+            APP.timer.pauseTimer();
+            APP.timer.elapsedTime = 0;
         },
     },
     getItems() {
@@ -59,7 +77,6 @@ const APP = {
             id: `${Math.floor(Date.now() * Math.random())}`,
         };
     },
-
     importItemsFromStorage() {
         APP._items = Model.query(APP.storageKey);
         if (APP._items === null) {
@@ -72,14 +89,19 @@ const APP = {
     },
     init() {
         APP.importItemsFromStorage();
+        APP.timer.initTimer();
         UI.initUI();
     },
 };
 
 const UI = {
     filterMethod: () => true,
+    permissions: {
+        notifications: false,
+        sounds: false,
+    },
     DOM: {
-        timerBtn: document.getElementById("timer-btn"),
+        StartTimerBtn: document.getElementById("start-timer-btn"),
         timerMinutes: document.getElementById("timer-minutes"),
         timerSeconds: document.getElementById("timer-seconds"),
         todoForm: document.getElementById("todo-form"),
@@ -94,6 +116,13 @@ const UI = {
         remaingItems: document.getElementById(
             "todo-list-settings-remaning-items"
         ),
+        timerTypes: {
+            timerTypesBtnContainer: document.getElementById(
+                "study-rest-btns-container"
+            ),
+            studyTimerBtn: document.getElementById("study-btn"),
+            restTimerBtn: document.getElementById("rest-btn"),
+        },
         settings: {
             filterByAllItemsBtn: document.getElementById(
                 "todo-list-settings-status-all"
@@ -114,6 +143,7 @@ const UI = {
         completedItemsBtnClass: ".todo-list-settings-status-completed",
         activeSettingsBtnClass: "todo-list-settings--status-active",
         settingsContainerID: "#todo-list-settings-container",
+        timerTypeHighlightClass: "study-rest-btn-highlighted",
     },
     helpers: {
         formatTime(timeInSeconds) {
@@ -125,33 +155,51 @@ const UI = {
             };
         },
     },
-    timerInterval: 0,
-    startTimer() {
-        APP.timer.startTimer();
-        UI.updateTimer();
-        UI.DOM.timerBtn.textContent = "Pause";
-    },
-    pauseTimer() {
-        clearInterval(UI.timerInterval);
-        APP.timer.pauseTimer();
-        UI.DOM.timerBtn.textContent = "Start";
-    },
-    updateTimer() {
-        UI.timerInterval = setInterval(() => {
-            const time = APP.timer.getCurrentTime();
-            if (time <= 0) {
-                UI.timerConcluded();
-                UI.pauseTimer();
-            }
+    timer: {
+        timerInterval: 0,
+        startTimer() {
+            APP.timer.startTimer();
+            UI.timer.updateTimer();
+            UI.DOM.StartTimerBtn.textContent = "Pause";
+        },
+        pauseTimer() {
+            clearInterval(UI.timer.timerInterval);
+            APP.timer.pauseTimer();
+            UI.DOM.StartTimerBtn.textContent = "Start";
+        },
+        resetTimer() {
+            UI.timer.pauseTimer();
+            UI.timer.setCurrentTimerTime();
+        },
+        setCurrentTimerTime() {
+            const currentTime = APP.timer.getCurrentTime();
+            const time = currentTime >= 0 ? currentTime : 0;
             UI.DOM.timerMinutes.textContent =
                 UI.helpers.formatTime(time).minutes;
             UI.DOM.timerSeconds.textContent =
                 UI.helpers.formatTime(time).seconds;
-        });
+        },
+        updateTimer() {
+            UI.timer.timerInterval = setInterval(() => {
+                const time = APP.timer.getCurrentTime();
+                if (time <= 0) {
+                    UI.timer.timerConcluded();
+                    UI.timer.pauseTimer();
+                }
+                UI.timer.setCurrentTimerTime();
+            });
+        },
+        timerConcluded() {
+            const timerConcludedAudio = new Audio("../sounds/sfx.wav");
+            timerConcludedAudio.play();
+
+            new Notification("%%%% timer has concluded let's %%%%");
+        },
+        initTimer() {
+            UI.timer.setCurrentTimerTime();
+        },
     },
-    timerConcluded() {},
     createItemHTML(content, id, status = false) {
-        console.log(content, status);
         const maxLength = 36;
         const title = content.length > maxLength ? content : "";
         const truncatedContent =
@@ -181,12 +229,10 @@ const UI = {
             `[data-id='${itemID}']`
         );
         APP.toggleItemAsDone(itemID);
-        console.log(itemElement);
         itemElement.classList.toggle(UI.classes.todoItemCompleted);
         UI.updateUI();
     },
     deleteItem(itemID) {
-        console.log(itemID);
         APP.deleteItem(itemID);
         UI.updateUI();
     },
@@ -248,11 +294,29 @@ const UI = {
         btn.classList.add(UI.classes.activeSettingsBtnClass);
     },
     eventHandlers: {
-        timerBtnHandler() {
+        studyTimerBtnHandler() {
+            if (APP.timer.isStudySession) return;
+            UI.DOM.timerTypes.timerTypesBtnContainer.classList.remove(
+                UI.classes.timerTypeHighlightClass
+            );
+            APP.timer.isStudySession = true;
+            UI.timer.resetTimer();
+        },
+        restTimerBtnHandler() {
+            if (!APP.timer.isStudySession) return;
+            UI.DOM.timerTypes.timerTypesBtnContainer.classList.add(
+                UI.classes.timerTypeHighlightClass
+            );
+            APP.timer.isStudySession = false;
+            UI.timer.resetTimer();
+        },
+        startTimerBtnHandler() {
+            if (!UI.permissions.notifications) UI.initPermissions();
+
             if (!APP.timer.running) {
-                UI.startTimer();
+                UI.timer.startTimer();
             } else {
-                UI.pauseTimer();
+                UI.timer.pauseTimer();
             }
         },
         todoFormHandler() {
@@ -264,7 +328,6 @@ const UI = {
             UI.updateUI();
         },
         settingsClearBtnHandler() {
-            console.log("Clear btn pressed");
             UI.deleteAllItems();
         },
 
@@ -294,10 +357,15 @@ const UI = {
             UI.toggleItemAsDone(itemID);
         },
     },
-
     initEventListeners() {
-        UI.DOM.timerBtn.addEventListener("click", () => {
-            UI.eventHandlers.timerBtnHandler();
+        UI.DOM.timerTypes.studyTimerBtn.addEventListener("click", () => {
+            UI.eventHandlers.studyTimerBtnHandler();
+        });
+        UI.DOM.timerTypes.restTimerBtn.addEventListener("click", () => {
+            UI.eventHandlers.restTimerBtnHandler();
+        });
+        UI.DOM.StartTimerBtn.addEventListener("click", () => {
+            UI.eventHandlers.startTimerBtnHandler();
         });
         UI.DOM.todoForm.addEventListener("submit", (e) => {
             e.preventDefault();
@@ -334,12 +402,23 @@ const UI = {
             }
         });
     },
-
+    initPermissions() {
+        if (Notification.permission === "granted") {
+            UI.permissions.notifications = true;
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then((permission) => {
+                if (permission === "granted") {
+                    UI.permissions.notifications = true;
+                }
+            });
+        }
+    },
     updateUI() {
         UI.loadItemsIntoUI();
         UI.updateRemainingItems();
     },
     initUI() {
+        UI.timer.initTimer();
         UI.initEventListeners();
         UI.updateUI();
     },

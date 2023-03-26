@@ -25,8 +25,8 @@ const APP = {
         timerInterval: null,
         _isStudySession: true,
         get isStudySession() {
-            // return APP.timer._isStudySession;
-            return APP.timer.currentSession === APP.timer.sessions.Study;
+            return APP.timer._isStudySession;
+            // return APP.timer.currentSession === APP.timer.sessions.Study;
         },
         set isStudySession(x) {
             APP.timer._isStudySession = x;
@@ -235,13 +235,7 @@ const UI = {
             const timerConcludedAudio = new Audio("../sounds/sfx.wav");
             timerConcludedAudio.play();
             if (APP.timer.isStudySession) {
-                if (APP.timer.restSessionTaken > 2) {
-                    APP.timer.restSessionTaken = 0;
-                    new Notification("Time for a long break");
-                } else {
-                    APP.timer.restSessionTaken++;
-                    new Notification("Time for a short rest");
-                }
+                new Notification("Time for a short rest");
                 UI.highlightRestBtn();
                 UI.timer.startRestSession();
             } else {

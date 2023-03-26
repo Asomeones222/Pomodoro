@@ -4,11 +4,29 @@ const APP = {
     halted: false,
     haltTime: 500,
     timer: {
+        sessions: {
+            // enum
+            Study: "Study",
+            Rest: "Rest",
+            Break: "Break",
+        },
+        _currentSession: null,
+        get currentSession() {
+            return APP.timer._currentSession;
+        },
+        set currentSession(x) {
+            APP.timer._currentSession = x;
+            if (APP.timer.isStudySession)
+                APP.timer.currentTime = APP.timer.studyTime;
+            else APP.timer.currentTime = APP.timer.restTime;
+            APP.timer.resetTimer();
+        },
         running: false,
         timerInterval: null,
         _isStudySession: true,
         get isStudySession() {
-            return APP.timer._isStudySession;
+            // return APP.timer._isStudySession;
+            return APP.timer.currentSession === APP.timer.sessions.Study;
         },
         set isStudySession(x) {
             APP.timer._isStudySession = x;
@@ -17,23 +35,29 @@ const APP = {
             else APP.timer.currentTime = APP.timer.restTime;
             APP.timer.resetTimer();
         },
-        studyTime: 10 * 60,
-        restTime: 5 * 60,
+        studyTime: (1 / 60) * 60,
+        restTime: (1 / 60) * 60,
+        longRestTime: 15 * 60,
+        _restSessionTaken: 0,
+        isLongRestSessionNow: false,
         currentTime: 0,
         elapsedTime: 0,
         getCurrentTime() {
             return APP.timer.currentTime - APP.timer.elapsedTime;
         },
         initTimer() {
+            APP.timer.currentSession = APP.timer.sessions.Study;
             if (APP.timer.isStudySession)
                 APP.timer.currentTime = APP.timer.studyTime;
             else APP.timer.currentTime = APP.timer.restTime;
         },
+        keepCountOfSessions() {},
         startTimer() {
+            APP.timer.keepCountOfSessions();
             APP.timer.running = true;
             APP.timer.timerInterval = setInterval(() => {
                 APP.timer.elapsedTime++;
-                if (APP.timer.getCurrentTime() <= 0) APP.timer.pauseTimer();
+                if (APP.timer.getCurrentTime() < 0) APP.timer.pauseTimer();
             }, 1000);
         },
         pauseTimer() {
@@ -155,6 +179,16 @@ const UI = {
             };
         },
     },
+    highlightStudyBtn() {
+        UI.DOM.timerTypes.timerTypesBtnContainer.classList.remove(
+            UI.classes.timerTypeHighlightClass
+        );
+    },
+    highlightRestBtn() {
+        UI.DOM.timerTypes.timerTypesBtnContainer.classList.add(
+            UI.classes.timerTypeHighlightClass
+        );
+    },
     timer: {
         timerInterval: 0,
         startTimer() {
@@ -171,6 +205,14 @@ const UI = {
             UI.timer.pauseTimer();
             UI.timer.setCurrentTimerTime();
         },
+        startStudySession() {
+            APP.timer.isStudySession = true;
+            UI.timer.resetTimer();
+        },
+        startRestSession() {
+            APP.timer.isStudySession = false;
+            UI.timer.resetTimer();
+        },
         setCurrentTimerTime() {
             const currentTime = APP.timer.getCurrentTime();
             const time = currentTime >= 0 ? currentTime : 0;
@@ -182,7 +224,7 @@ const UI = {
         updateTimer() {
             UI.timer.timerInterval = setInterval(() => {
                 const time = APP.timer.getCurrentTime();
-                if (time <= 0) {
+                if (time < 0) {
                     UI.timer.timerConcluded();
                     UI.timer.pauseTimer();
                 }
@@ -192,8 +234,21 @@ const UI = {
         timerConcluded() {
             const timerConcludedAudio = new Audio("../sounds/sfx.wav");
             timerConcludedAudio.play();
-
-            new Notification("%%%% timer has concluded let's %%%%");
+            if (APP.timer.isStudySession) {
+                if (APP.timer.restSessionTaken > 2) {
+                    APP.timer.restSessionTaken = 0;
+                    new Notification("Time for a long break");
+                } else {
+                    APP.timer.restSessionTaken++;
+                    new Notification("Time for a short rest");
+                }
+                UI.highlightRestBtn();
+                UI.timer.startRestSession();
+            } else {
+                new Notification("Time to study!");
+                UI.highlightStudyBtn();
+                UI.timer.startStudySession();
+            }
         },
         initTimer() {
             UI.timer.setCurrentTimerTime();
@@ -296,19 +351,13 @@ const UI = {
     eventHandlers: {
         studyTimerBtnHandler() {
             if (APP.timer.isStudySession) return;
-            UI.DOM.timerTypes.timerTypesBtnContainer.classList.remove(
-                UI.classes.timerTypeHighlightClass
-            );
-            APP.timer.isStudySession = true;
-            UI.timer.resetTimer();
+            UI.highlightStudyBtn();
+            UI.timer.startStudySession();
         },
         restTimerBtnHandler() {
             if (!APP.timer.isStudySession) return;
-            UI.DOM.timerTypes.timerTypesBtnContainer.classList.add(
-                UI.classes.timerTypeHighlightClass
-            );
-            APP.timer.isStudySession = false;
-            UI.timer.resetTimer();
+            UI.highlightRestBtn();
+            UI.timer.startRestSession();
         },
         startTimerBtnHandler() {
             if (!UI.permissions.notifications) UI.initPermissions();

@@ -4,11 +4,25 @@ const APP = {
     halted: false,
     haltTime: 500,
     timer: {
+        running: false,
+        timerInterval: null,
+        _currentTime: 0,
+        elapsedTime: 0,
+        // _isStudySession: true,
         sessions: {
             // enum
-            Study: "Study",
-            Rest: "Rest",
-            Break: "Break",
+            Study: { time: 25 * 60, satThroughCount: 0 },
+            Rest: { time: 5 * 60, satThroughCount: 0 },
+            Break: { time: 15 * 60, satThroughCount: 0 },
+            isStudySession() {
+                return APP.timer.currentSession === APP.timer.sessions.Study;
+            },
+            isRestSession() {
+                return APP.timer.currentSession === APP.timer.sessions.Rest;
+            },
+            isBreakSession() {
+                return APP.timer.currentSession === APP.timer.sessions.Break;
+            },
         },
         _currentSession: null,
         get currentSession() {
@@ -16,53 +30,52 @@ const APP = {
         },
         set currentSession(x) {
             APP.timer._currentSession = x;
-            if (APP.timer.isStudySession)
-                APP.timer.currentTime = APP.timer.studyTime;
-            else APP.timer.currentTime = APP.timer.restTime;
             APP.timer.resetTimer();
         },
-        running: false,
-        timerInterval: null,
-        _isStudySession: true,
-        get isStudySession() {
-            // return APP.timer._isStudySession;
-            return APP.timer.currentSession === APP.timer.sessions.Study;
+        startStudySession() {
+            APP.timer.currentSession = APP.timer.sessions.Study;
         },
-        set isStudySession(x) {
-            APP.timer._isStudySession = x;
-            if (APP.timer.isStudySession)
-                APP.timer.currentTime = APP.timer.studyTime;
-            else APP.timer.currentTime = APP.timer.restTime;
-            APP.timer.resetTimer();
+        startRestSession() {
+            APP.timer.currentSession = APP.timer.sessions.Rest;
         },
-        studyTime: (1 / 60) * 60,
-        restTime: (1 / 60) * 60,
-        longRestTime: 15 * 60,
-        _restSessionTaken: 0,
-        isLongRestSessionNow: false,
-        currentTime: 0,
-        elapsedTime: 0,
+        startBreakSession() {
+            APP.timer.currentSession = APP.timer.sessions.Break;
+        },
+        get currentTime() {
+            return APP.timer.currentSession.time;
+        },
+
         getCurrentTime() {
             return APP.timer.currentTime - APP.timer.elapsedTime;
         },
         initTimer() {
             APP.timer.currentSession = APP.timer.sessions.Study;
-            if (APP.timer.isStudySession)
-                APP.timer.currentTime = APP.timer.studyTime;
-            else APP.timer.currentTime = APP.timer.restTime;
         },
         keepCountOfSessions() {},
         startTimer() {
-            APP.timer.keepCountOfSessions();
             APP.timer.running = true;
+            APP.timer.currentSession.satThroughCount += 1;
             APP.timer.timerInterval = setInterval(() => {
                 APP.timer.elapsedTime++;
-                if (APP.timer.getCurrentTime() < 0) APP.timer.pauseTimer();
+                if (APP.timer.getCurrentTime() < 0) {
+                    APP.timer.pauseTimer();
+                    APP.timer.timerConcluded();
+                }
             }, 1000);
         },
         pauseTimer() {
             clearInterval(APP.timer.timerInterval);
             APP.timer.running = false;
+        },
+        timerConcluded() {
+            if (APP.timer.sessions.isBreakSession())
+                APP.timer.startStudySession();
+            else if (
+                APP.timer.sessions.isRestSession() &&
+                APP.timer.currentTime.satThroughCount > 2
+            )
+                APP.timer.startBreakSession();
+            else APP.timer.startRestSession();
         },
         resetTimer() {
             APP.timer.pauseTimer();
@@ -206,11 +219,11 @@ const UI = {
             UI.timer.setCurrentTimerTime();
         },
         startStudySession() {
-            APP.timer.isStudySession = true;
+            APP.timer.startStudySession();
             UI.timer.resetTimer();
         },
         startRestSession() {
-            APP.timer.isStudySession = false;
+            APP.timer.startRestSession();
             UI.timer.resetTimer();
         },
         setCurrentTimerTime() {
@@ -234,7 +247,7 @@ const UI = {
         timerConcluded() {
             const timerConcludedAudio = new Audio("../sounds/sfx.wav");
             timerConcludedAudio.play();
-            if (APP.timer.isStudySession) {
+            if (APP.timer.sessions.isStudySession()) {
                 if (APP.timer.restSessionTaken > 2) {
                     APP.timer.restSessionTaken = 0;
                     new Notification("Time for a long break");
@@ -350,12 +363,12 @@ const UI = {
     },
     eventHandlers: {
         studyTimerBtnHandler() {
-            if (APP.timer.isStudySession) return;
+            if (APP.timer.sessions.isStudySession()) return;
             UI.highlightStudyBtn();
             UI.timer.startStudySession();
         },
         restTimerBtnHandler() {
-            if (!APP.timer.isStudySession) return;
+            if (!APP.timer.sessions.isStudySession()) return;
             UI.highlightRestBtn();
             UI.timer.startRestSession();
         },

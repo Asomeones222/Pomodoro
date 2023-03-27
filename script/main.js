@@ -145,6 +145,7 @@ const APP = {
 };
 
 const UI = {
+    isDarkThemeApplied: false,
     filterMethod: () => true,
     permissions: {
         notifications: false,
@@ -204,6 +205,14 @@ const UI = {
                 seconds: `${seconds}`.padStart(2, 0),
             };
         },
+    },
+    checkTheme() {
+        if (
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
+            UI.isDarkThemeApplied = true;
+        }
     },
     highlightStudyBtn() {
         UI.DOM.timerTypes.timerTypesBtnContainer.classList.remove(
@@ -388,6 +397,11 @@ const UI = {
         btn.classList.add(UI.classes.activeSettingsBtnClass);
     },
     eventHandlers: {
+        switchTheme() {
+            UI.isDarkThemeApplied = !UI.isDarkThemeApplied;
+            const cssDarkThemeFileNode = document.querySelector("#dark-mode");
+            cssDarkThemeFileNode.disabled = !cssDarkThemeFileNode.disabled;
+        },
         studyTimerBtnHandler() {
             if (APP.timer.sessions.isStudySession()) return;
             UI.highlightStudyBtn();
@@ -446,6 +460,9 @@ const UI = {
         },
     },
     initEventListeners() {
+        document.querySelector("#mode-btn").addEventListener("click", () => {
+            UI.eventHandlers.switchTheme();
+        });
         UI.DOM.timerTypes.studyTimerBtn.addEventListener("click", () => {
             UI.eventHandlers.studyTimerBtnHandler();
         });
@@ -508,6 +525,7 @@ const UI = {
     initUI() {
         UI.timer.initTimer();
         UI.initEventListeners();
+        UI.checkTheme();
         UI.updateUI();
     },
 };

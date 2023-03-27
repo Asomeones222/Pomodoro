@@ -7,8 +7,6 @@
         --Light-Grayish-Blue: hsl(234, 39%, 85%);
         --Light-Grayish-Blue-hover: hsl(236, 33%, 92%);
         --Dark-Grayish-Blue: hsl(234, 11%, 52%);
-        /* --Very-Dark-Grayish-Blue: hsl(233, 14%, 35%); */
-        /* --Very-Dark-Grayish-Blue: hsl(237, 14%, 26%); */
         --border-color: hsl(236, 13%, 26%);
         --box-shadow-color: rgba(14, 15, 21, 0.1);
         --box-shadow-rgb: 14, 15, 21;
@@ -23,6 +21,7 @@
             --study-rest-btns-container-border-color
         );
         --todo-cross-btn-brightness: 3;
+        --input-form-color: var(--Very-Dark-Grayish-Blue);
     }
     #mode-btn img {
         opacity: 0;
@@ -30,6 +29,6 @@
     #mode-btn {
         filter: invert(0);
         opacity: 0.8;
-        background: url("../images/icon-sun.svg");
+        background: url("../images/icon-sun.svg") no-repeat center;
     }
 }

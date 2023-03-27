@@ -102,6 +102,11 @@ body {
 #mode-btn {
     filter: invert(100%);
     opacity: 0.4;
+    padding: 0.5rem;
+}
+#mode-btn:hover,
+#mode-btn:focus-visible {
+    border-bottom: 2px solid white;
 }
 main {
     display: grid;

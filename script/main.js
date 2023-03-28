@@ -1,14 +1,48 @@
 const APP = {
     _items: [],
-    storageKey: "todo-items",
+    storageKey: "pomodoro-items",
+    pref: { colorScheme: null },
+    prefKey: "pomodoro-pref",
     halted: false,
     haltTime: 500,
     timer: {
+        running: false,
+        timerInterval: null,
+        _currentTime: 0,
+        elapsedTime: 0,
+        // _isStudySession: true,
         sessions: {
             // enum
-            Study: "Study",
-            Rest: "Rest",
-            Break: "Break",
+            Study: { name: "Study", time: 25 * 60, satThroughCount: 0 },
+            Rest: { name: "Rest", time: 5 * 60, satThroughCount: 0 },
+            Break: {
+                name: "Break",
+                time: 15 * 60,
+                satThroughCount: 0,
+                isTurn() {
+                    if (
+                        APP.timer.sessions.Rest.satThroughCount % 3 === 0 &&
+                        APP.timer.sessions.Rest.satThroughCount &&
+                        !this._concludedJustBefore
+                    ) {
+                        this._concludedJustBefore = true;
+                        return true;
+                    }
+                    this._concludedJustBefore = false;
+                    return false;
+                },
+                _concludedJustBefore: false,
+            },
+            noSession: { time: 0, satThroughCount: 0 },
+            isStudySession() {
+                return APP.timer.currentSession === APP.timer.sessions.Study;
+            },
+            isRestSession() {
+                return APP.timer.currentSession === APP.timer.sessions.Rest;
+            },
+            isBreakSession() {
+                return APP.timer.currentSession === APP.timer.sessions.Break;
+            },
         },
         _currentSession: null,
         get currentSession() {
@@ -16,54 +50,48 @@ const APP = {
         },
         set currentSession(x) {
             APP.timer._currentSession = x;
-            if (APP.timer.isStudySession)
-                APP.timer.currentTime = APP.timer.studyTime;
-            else APP.timer.currentTime = APP.timer.restTime;
             APP.timer.resetTimer();
         },
-        running: false,
-        timerInterval: null,
-        _isStudySession: true,
-        get isStudySession() {
-            return APP.timer._isStudySession;
-            // return APP.timer.currentSession === APP.timer.sessions.Study;
+        startStudySession() {
+            APP.timer.currentSession = APP.timer.sessions.Study;
+            APP.timer.startTimer();
         },
-        set isStudySession(x) {
-            APP.timer._isStudySession = x;
-            if (APP.timer.isStudySession)
-                APP.timer.currentTime = APP.timer.studyTime;
-            else APP.timer.currentTime = APP.timer.restTime;
-            APP.timer.resetTimer();
+        startRestSession() {
+            APP.timer.currentSession = APP.timer.sessions.Rest;
+            APP.timer.startTimer();
         },
-        studyTime: (1 / 60) * 60,
-        restTime: (1 / 60) * 60,
-        longRestTime: 15 * 60,
-        _restSessionTaken: 0,
-        isLongRestSessionNow: false,
-        currentTime: 0,
-        elapsedTime: 0,
+        startBreakSession() {
+            APP.timer.currentSession = APP.timer.sessions.Break;
+            APP.timer.startTimer();
+        },
+        get currentTime() {
+            return APP.timer.currentSession.time;
+        },
+
         getCurrentTime() {
             return APP.timer.currentTime - APP.timer.elapsedTime;
         },
         initTimer() {
             APP.timer.currentSession = APP.timer.sessions.Study;
-            if (APP.timer.isStudySession)
-                APP.timer.currentTime = APP.timer.studyTime;
-            else APP.timer.currentTime = APP.timer.restTime;
         },
         keepCountOfSessions() {},
         startTimer() {
-            APP.timer.keepCountOfSessions();
             APP.timer.running = true;
+            APP.timer.currentSession.satThroughCount += 1;
             APP.timer.timerInterval = setInterval(() => {
                 APP.timer.elapsedTime++;
-                if (APP.timer.getCurrentTime() < 0) APP.timer.pauseTimer();
+                if (APP.timer.getCurrentTime() < 0) {
+                    APP.timer.pauseTimer();
+                    APP.timer.timerConcluded();
+                }
             }, 1000);
+            console.log(APP.timer.currentSession);
         },
         pauseTimer() {
             clearInterval(APP.timer.timerInterval);
             APP.timer.running = false;
         },
+        timerConcluded() {},
         resetTimer() {
             APP.timer.pauseTimer();
             APP.timer.elapsedTime = 0;
@@ -101,6 +129,15 @@ const APP = {
             id: `${Math.floor(Date.now() * Math.random())}`,
         };
     },
+    importPref() {
+        const preferences = Model.query(APP.prefKey);
+        if (preferences) APP.pref = preferences;
+        console.log(APP.pref?.colorScheme);
+    },
+    exportPref() {
+        console.log(APP.pref);
+        Model.save(APP.prefKey, APP.pref);
+    },
     importItemsFromStorage() {
         APP._items = Model.query(APP.storageKey);
         if (APP._items === null) {
@@ -113,12 +150,14 @@ const APP = {
     },
     init() {
         APP.importItemsFromStorage();
+        APP.importPref();
         APP.timer.initTimer();
         UI.initUI();
     },
 };
 
 const UI = {
+    colorScheme: null,
     filterMethod: () => true,
     permissions: {
         notifications: false,
@@ -179,6 +218,44 @@ const UI = {
             };
         },
     },
+    setPref() {
+        UI.colorScheme = APP.pref?.colorScheme;
+    },
+    prefersDarkMode() {
+        return (
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+        );
+    },
+    initTheme() {
+        if (UI.colorScheme !== null) {
+            UI.setTheme(UI.colorScheme);
+            return;
+        }
+        // If no settings are stored set user preferred mode
+        if (UI.prefersDarkMode()) UI.setTheme(1);
+        else UI.setTheme(0);
+    },
+    setDarkTheme() {
+        const cssDarkThemeFileNode = document.querySelector("#dark-mode");
+        cssDarkThemeFileNode.disabled = false;
+    },
+    setLightTheme() {
+        const cssDarkThemeFileNode = document.querySelector("#dark-mode");
+        cssDarkThemeFileNode.disabled = true;
+    },
+    setTheme(colorScheme) {
+        // colorScheme ===  0 -> light colorScheme=== 1 -> dark
+        if (colorScheme === 1) UI.setDarkTheme();
+        else UI.setLightTheme();
+        UI.colorScheme = colorScheme;
+        APP.pref.colorScheme = colorScheme;
+        APP.exportPref();
+    },
+    switchTheme() {
+        if (UI.colorScheme === 0) UI.setTheme(1);
+        else UI.setTheme(0);
+    },
     highlightStudyBtn() {
         UI.DOM.timerTypes.timerTypesBtnContainer.classList.remove(
             UI.classes.timerTypeHighlightClass
@@ -196,6 +273,22 @@ const UI = {
             UI.timer.updateTimer();
             UI.DOM.StartTimerBtn.textContent = "Pause";
         },
+        switchSession() {
+            if (
+                APP.timer.sessions.isBreakSession() ||
+                APP.timer.sessions.isRestSession()
+            ) {
+                APP.timer.currentSession = APP.timer.sessions.Study;
+                return;
+            }
+            if (APP.timer.sessions.Break.isTurn()) {
+                APP.timer.currentSession = APP.timer.sessions.Break;
+                return;
+            } else APP.timer.currentSession = APP.timer.sessions.Rest;
+
+            UI.timer.updateTimer();
+            UI.DOM.StartTimerBtn.textContent = "Pause";
+        },
         pauseTimer() {
             clearInterval(UI.timer.timerInterval);
             APP.timer.pauseTimer();
@@ -206,11 +299,11 @@ const UI = {
             UI.timer.setCurrentTimerTime();
         },
         startStudySession() {
-            APP.timer.isStudySession = true;
+            APP.timer.startStudySession();
             UI.timer.resetTimer();
         },
         startRestSession() {
-            APP.timer.isStudySession = false;
+            APP.timer.startRestSession();
             UI.timer.resetTimer();
         },
         setCurrentTimerTime() {
@@ -224,7 +317,7 @@ const UI = {
         updateTimer() {
             UI.timer.timerInterval = setInterval(() => {
                 const time = APP.timer.getCurrentTime();
-                if (time < 0) {
+                if (time <= 0) {
                     UI.timer.timerConcluded();
                     UI.timer.pauseTimer();
                 }
@@ -232,16 +325,19 @@ const UI = {
             });
         },
         timerConcluded() {
-            const timerConcludedAudio = new Audio("../sounds/sfx.wav");
+            const timerConcludedAudio = new Audio("../sounds/sfx-2.wav");
             timerConcludedAudio.play();
-            if (APP.timer.isStudySession) {
-                new Notification("Time for a short rest");
-                UI.highlightRestBtn();
-                UI.timer.startRestSession();
-            } else {
+
+            UI.timer.switchSession();
+            if (APP.timer.sessions.isStudySession()) {
                 new Notification("Time to study!");
                 UI.highlightStudyBtn();
-                UI.timer.startStudySession();
+            } else if (APP.timer.sessions.isRestSession()) {
+                new Notification("Time to rest!");
+                UI.highlightRestBtn();
+            } else if (APP.timer.sessions.isBreakSession()) {
+                new Notification("Time for a break!");
+                UI.highlightRestBtn();
             }
         },
         initTimer() {
@@ -344,12 +440,12 @@ const UI = {
     },
     eventHandlers: {
         studyTimerBtnHandler() {
-            if (APP.timer.isStudySession) return;
+            if (APP.timer.sessions.isStudySession()) return;
             UI.highlightStudyBtn();
             UI.timer.startStudySession();
         },
         restTimerBtnHandler() {
-            if (!APP.timer.isStudySession) return;
+            if (APP.timer.sessions.isRestSession()) return;
             UI.highlightRestBtn();
             UI.timer.startRestSession();
         },
@@ -401,6 +497,9 @@ const UI = {
         },
     },
     initEventListeners() {
+        document.querySelector("#mode-btn").addEventListener("click", () => {
+            UI.switchTheme();
+        });
         UI.DOM.timerTypes.studyTimerBtn.addEventListener("click", () => {
             UI.eventHandlers.studyTimerBtnHandler();
         });
@@ -461,6 +560,8 @@ const UI = {
         UI.updateRemainingItems();
     },
     initUI() {
+        UI.setPref();
+        UI.initTheme();
         UI.timer.initTimer();
         UI.initEventListeners();
         UI.updateUI();

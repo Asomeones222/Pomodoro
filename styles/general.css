@@ -4,6 +4,7 @@
 }
 #new-todo-input {
     padding-inline-start: 6rem;
+    color: var(--input-form-color);
 }
 .todo-list-item {
     background: none;
@@ -19,7 +20,7 @@
     outline: none;
 }
 li.todo-list-item {
-    border-bottom: 1px solid hsl(235, 30%, 92%);
+    border-bottom: 1px solid var(--todo-list-item-border-color);
     border-radius: 0px;
     display: grid;
     align-items: center;
@@ -79,6 +80,7 @@ li.todo-list-item:last-child {
     border: none;
     /* border-radius: 50%; */
     padding: 1rem;
+    filter: brightness(var(--todo-cross-btn-brightness));
 }
 .todo-cross-btn:focus-visible {
     border-bottom: 2px solid #68c9fa;

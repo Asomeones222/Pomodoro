@@ -1,6 +1,8 @@
 const APP = {
     _items: [],
-    storageKey: "todo-items",
+    storageKey: "pomodoro-items",
+    pref: { colorScheme: null },
+    prefKey: "pomodoro-pref",
     halted: false,
     haltTime: 500,
     timer: {
@@ -127,6 +129,15 @@ const APP = {
             id: `${Math.floor(Date.now() * Math.random())}`,
         };
     },
+    importPref() {
+        const preferences = Model.query(APP.prefKey);
+        if (preferences) APP.pref = preferences;
+        console.log(APP.pref?.colorScheme);
+    },
+    exportPref() {
+        console.log(APP.pref);
+        Model.save(APP.prefKey, APP.pref);
+    },
     importItemsFromStorage() {
         APP._items = Model.query(APP.storageKey);
         if (APP._items === null) {
@@ -139,13 +150,14 @@ const APP = {
     },
     init() {
         APP.importItemsFromStorage();
+        APP.importPref();
         APP.timer.initTimer();
         UI.initUI();
     },
 };
 
 const UI = {
-    isDarkThemeApplied: false,
+    colorScheme: null,
     filterMethod: () => true,
     permissions: {
         notifications: false,
@@ -206,13 +218,43 @@ const UI = {
             };
         },
     },
-    checkTheme() {
-        if (
+    setPref() {
+        UI.colorScheme = APP.pref?.colorScheme;
+    },
+    prefersDarkMode() {
+        return (
             window.matchMedia &&
             window.matchMedia("(prefers-color-scheme: dark)").matches
-        ) {
-            UI.isDarkThemeApplied = true;
+        );
+    },
+    initTheme() {
+        if (UI.colorScheme !== null) {
+            UI.setTheme(UI.colorScheme);
+            return;
         }
+        // If no settings are stored set user preferred mode
+        if (UI.prefersDarkMode()) UI.setTheme(1);
+        else UI.setTheme(0);
+    },
+    setDarkTheme() {
+        const cssDarkThemeFileNode = document.querySelector("#dark-mode");
+        cssDarkThemeFileNode.disabled = false;
+    },
+    setLightTheme() {
+        const cssDarkThemeFileNode = document.querySelector("#dark-mode");
+        cssDarkThemeFileNode.disabled = true;
+    },
+    setTheme(colorScheme) {
+        // colorScheme ===  0 -> light colorScheme=== 1 -> dark
+        if (colorScheme === 1) UI.setDarkTheme();
+        else UI.setLightTheme();
+        UI.colorScheme = colorScheme;
+        APP.pref.colorScheme = colorScheme;
+        APP.exportPref();
+    },
+    switchTheme() {
+        if (UI.colorScheme === 0) UI.setTheme(1);
+        else UI.setTheme(0);
     },
     highlightStudyBtn() {
         UI.DOM.timerTypes.timerTypesBtnContainer.classList.remove(
@@ -397,11 +439,6 @@ const UI = {
         btn.classList.add(UI.classes.activeSettingsBtnClass);
     },
     eventHandlers: {
-        switchTheme() {
-            UI.isDarkThemeApplied = !UI.isDarkThemeApplied;
-            const cssDarkThemeFileNode = document.querySelector("#dark-mode");
-            cssDarkThemeFileNode.disabled = !cssDarkThemeFileNode.disabled;
-        },
         studyTimerBtnHandler() {
             if (APP.timer.sessions.isStudySession()) return;
             UI.highlightStudyBtn();
@@ -461,7 +498,7 @@ const UI = {
     },
     initEventListeners() {
         document.querySelector("#mode-btn").addEventListener("click", () => {
-            UI.eventHandlers.switchTheme();
+            UI.switchTheme();
         });
         UI.DOM.timerTypes.studyTimerBtn.addEventListener("click", () => {
             UI.eventHandlers.studyTimerBtnHandler();
@@ -523,9 +560,10 @@ const UI = {
         UI.updateRemainingItems();
     },
     initUI() {
+        UI.setPref();
+        UI.initTheme();
         UI.timer.initTimer();
         UI.initEventListeners();
-        UI.checkTheme();
         UI.updateUI();
     },
 };

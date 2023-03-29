@@ -3,8 +3,6 @@ const APP = {
     storageKey: "pomodoro-items",
     pref: { colorScheme: null },
     prefKey: "pomodoro-pref",
-    halted: false,
-    haltTime: 500,
     timer: {
         running: false,
         timerInterval: null,
@@ -158,7 +156,6 @@ const APP = {
 
 const UI = {
     colorScheme: null,
-    filterMethod: () => true,
     permissions: {
         notifications: false,
         sounds: false,
@@ -209,6 +206,10 @@ const UI = {
         timerTypeHighlightClass: "study-rest-btn-highlighted",
     },
     helpers: {
+        theme: {
+            haltSwitchingThemeFor: 500,
+            switchingThemeHalted: false,
+        },
         formatTime(timeInSeconds) {
             const minutes = Math.trunc(timeInSeconds / 60);
             const seconds = timeInSeconds % 60;
@@ -413,6 +414,7 @@ const UI = {
     filterByAllItems() {
         UI.filterItemsBy(() => true);
     },
+    filterMethod: () => true,
     filterItemsBy(callback) {
         UI.filterMethod = callback;
         UI.updateUI();
@@ -439,6 +441,9 @@ const UI = {
         btn.classList.add(UI.classes.activeSettingsBtnClass);
     },
     eventHandlers: {
+        switchThemeBtnHandler() {
+            UI.switchTheme();
+        },
         studyTimerBtnHandler() {
             if (APP.timer.sessions.isStudySession()) return;
             UI.highlightStudyBtn();
@@ -498,7 +503,14 @@ const UI = {
     },
     initEventListeners() {
         document.querySelector("#mode-btn").addEventListener("click", () => {
-            UI.switchTheme();
+            // Prevents flashes when switching theme quickly using for example keyboard when tabbing over the button
+            if (UI.helpers.theme.switchingThemeHalted) return;
+            UI.helpers.theme.switchingThemeHalted = true;
+            setTimeout(() => {
+                UI.helpers.theme.switchingThemeHalted = false;
+            }, UI.helpers.theme.haltSwitchingThemeFor);
+
+            UI.eventHandlers.switchThemeBtnHandler();
         });
         UI.DOM.timerTypes.studyTimerBtn.addEventListener("click", () => {
             UI.eventHandlers.studyTimerBtnHandler();

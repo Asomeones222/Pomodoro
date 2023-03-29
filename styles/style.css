@@ -117,7 +117,6 @@ dd {
     padding: 0.5rem;
     border-bottom: 2px solid transparent;
 }
-#mode-btn:hover,
 #mode-btn:focus-visible {
     border-bottom: 2px solid white;
 }
@@ -175,10 +174,12 @@ main {
     border-top-right-radius: 4px;
 }
 #study-btn:hover,
-#study-btn:focus-visible,
-#rest-btn:hover,
-#rest-btn:focus-visible {
+#rest-btn:hover {
     background-color: hsla(230, 20%, 36%, 0.05);
+}
+#study-btn:focus-visible,
+#rest-btn:focus-visible {
+    background-color: hsla(230, 20%, 36%, 0.15);
 }
 /* #timer-minutes,
 #timer-seconds {

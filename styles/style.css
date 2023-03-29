@@ -282,14 +282,7 @@ main {
     display: flex;
     gap: 1rem;
 }
-#about {
-    margin-block-start: 16rem;
-    margin-block-end: 8rem;
-    max-width: 80rem;
-    line-height: 1.8;
-    /* filter: brightness(0.7); */
-    margin-inline: 3rem;
-}
+
 #footer {
     display: flex;
     align-items: center;

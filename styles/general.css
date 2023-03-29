@@ -9,7 +9,7 @@
     color: var(--input-form-color);
 }
 #new-todo-input::placeholder {
-    filter: brightness(0.7);
+    /* filter: brightness(); */
     color: var(--input-form-color);
 }
 .todo-list-item {

@@ -1,1 +1,11 @@
-# In Progress
+# POMODORO.fyi
+
+Study in an efficient way by utilizing the Pomodoro technique
+
+## Todo
+
+-   [ ] Add a quote box where a new (encouragement) quote is fetched on every refresh
+-   [ ] Implement ability to change time of each session
+-   [ ] Add login feature so users can save their work
+-   [ ] Give users ability to watch their stats
+-   [ ] Give proper credits

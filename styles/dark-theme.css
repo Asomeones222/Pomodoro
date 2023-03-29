@@ -41,3 +41,6 @@ dd {
     opacity: 0.8;
     background: url("../images/icon-sun.svg") no-repeat center;
 }
+#new-todo-input::placeholder {
+    filter: brightness(0.7);
+}

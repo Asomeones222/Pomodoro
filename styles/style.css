@@ -74,19 +74,31 @@ html {
     --start-btn-border-color: #ccc;
     --todo-list-item-border-color: hsl(235, 30%, 92%);
     --todo-cross-btn-brightness: 1;
+    --footer-bgc: #f9f9f9;
 }
 body {
     font-size: 1.8rem;
     scroll-behavior: smooth;
     font-family: "Josefin Sans", sans-serif;
     background-color: var(--body-bgc);
-    /* background: linear-gradient(180deg, #201e29 30%, #f7f7f7 30%),
-        url("../images/pattern-hills.svg") center; */
+}
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+    color: var(--Very-Dark-Grayish-Blue);
 }
 #main-nav {
     max-width: 144rem;
     margin: auto;
-    padding: 1rem;
+    padding-inline: 1.5rem;
+    padding-block: 1.5rem;
 }
 #main-nav-list {
     display: flex;
@@ -96,7 +108,7 @@ body {
     padding: 0;
     margin: 0;
 }
-#nav-header {
+.nav-header {
     color: var(--Very-Dark-Grayish-Blue);
 }
 #mode-btn {
@@ -268,4 +280,40 @@ main {
     padding: 0;
     display: flex;
     gap: 1rem;
+}
+#about {
+    margin-block-start: 16rem;
+    margin-block-end: 8rem;
+    max-width: 80rem;
+    line-height: 1.8;
+    /* filter: brightness(0.7); */
+    margin-inline: 3rem;
+}
+#footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 144rem;
+    margin: auto;
+    margin-inline: 2rem;
+    margin-block-start: 20rem;
+    padding-block-start: 6rem;
+    position: relative;
+}
+#footer::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-shadow: -50vw 0px 0px 0px var(--footer-bgc),
+        50vw 0px 0px 0px var(--footer-bgc);
+    background-color: var(--footer-bgc);
+    z-index: -1;
+}
+#footer-nav-links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    gap: 4rem;
 }

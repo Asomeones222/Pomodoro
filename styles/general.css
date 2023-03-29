@@ -1,7 +1,9 @@
 .btn {
     all: unset;
     cursor: pointer;
+    border-bottom: 1px solid transparent;
 }
+
 #new-todo-input {
     padding-inline-start: 6rem;
     color: var(--input-form-color);
@@ -30,6 +32,9 @@ li.todo-list-item {
 li.todo-list-item:last-child {
     border-bottom: 0;
     border-radius: 0px;
+}
+li.todo-list-item span {
+    transform: translateY(9%);
 }
 
 .todo-list-item--completed span {
@@ -87,4 +92,8 @@ li.todo-list-item:last-child {
 }
 .todo-cross-btn:focus-visible {
     border-bottom: 1px solid #68c9fa;
+}
+.link:active,
+.link:focus-visible {
+    border-bottom: 1px solid var(--blue);
 }

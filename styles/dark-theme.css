@@ -10,8 +10,6 @@ html {
     --box-shadow-color: rgba(14, 15, 21, 0.1);
     --box-shadow-rgb: 14, 15, 21;
     --body-bgc: hsl(235, 21%, 15%);
-
-    --input-form-color: hsl(231, 11%, 52%);
     --nav-header-invert: 100%;
     --timer-container-before-bgc: hsla(231, 25%, 42%, 0.03);
     --start-btn-border-color: hsl(227, 26%, 60%);
@@ -21,7 +19,20 @@ html {
     );
     --todo-cross-btn-brightness: 3;
     --input-form-color: var(--Very-Dark-Grayish-Blue);
+    --footer-bgc: #25283c2f;
 }
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+    color: var(--Very-Dark-Grayish-Blue);
+}
+
 #mode-btn img {
     opacity: 0;
 }

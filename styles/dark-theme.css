@@ -44,3 +44,6 @@ dd {
 #new-todo-input::placeholder {
     filter: brightness(0.7);
 }
+#otro-blockquote {
+    background: var(--timer-container-before-bgc);
+}

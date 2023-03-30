@@ -2,4 +2,12 @@
     html {
         font-size: 50%;
     }
+    #otro-blockquote {
+        font-size: 1.8rem;
+        line-height: 1.8;
+    }
+    #otro-blockquote::before {
+        font-size: 8.2rem;
+        content: '"';
+    }
 }

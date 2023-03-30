@@ -193,6 +193,7 @@ const UI = {
             ),
         },
         quote: {
+            quoteContainerElement: document.getElementById("quote-container"),
             quoteTextElement: document.getElementById("quote-text"),
             quoteeElement: document.getElementById("quotee"),
         },
@@ -452,6 +453,8 @@ const UI = {
             UI.DOM.quote.quoteeElement.textContent = quote.author;
         } catch (err) {
             console.log(err);
+        } finally {
+            UI.DOM.quote.quoteContainerElement.style.filter = "opacity(1)";
         }
     },
     eventHandlers: {

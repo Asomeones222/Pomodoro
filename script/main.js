@@ -192,6 +192,10 @@ const UI = {
                 "todo-list-settings-status-completed"
             ),
         },
+        quote: {
+            quoteTextElement: document.getElementById("quote-text"),
+            quoteeElement: document.getElementById("quotee"),
+        },
     },
     classes: {
         todoItemCompleted: "todo-list-item--completed",
@@ -438,6 +442,18 @@ const UI = {
         UI.settingsContainerRemoveClickStyle();
         btn.classList.add(UI.classes.activeSettingsBtnClass);
     },
+    async fetchQuote() {
+        try {
+            const quote = await (
+                await fetch("https://api.quotable.io/random")
+            ).json();
+            console.log(quote);
+            UI.DOM.quote.quoteTextElement.textContent = quote.content;
+            UI.DOM.quote.quoteeElement.textContent = quote.author;
+        } catch (err) {
+            console.log(err);
+        }
+    },
     eventHandlers: {
         switchThemeBtnHandler() {
             UI.switchTheme();
@@ -574,6 +590,7 @@ const UI = {
         UI.initTheme();
         UI.timer.initTimer();
         UI.initEventListeners();
+        // UI.fetchQuote();
         UI.updateUI();
     },
 };

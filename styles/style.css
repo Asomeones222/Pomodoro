@@ -284,8 +284,8 @@ main {
 }
 
 #quote-container {
-    max-width: 86rem;
-    /* max-width: 60%; */
+    /* max-width: 86rem; */
+    width: min(86rem, 100%);
     margin-block: 15rem;
     padding-inline: 1.5rem;
     margin-inline: auto;

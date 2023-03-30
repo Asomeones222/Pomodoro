@@ -1,3 +1,4 @@
+"use strict";
 const APP = {
     _items: [],
     storageKey: "pomodoro-items",
@@ -83,7 +84,6 @@ const APP = {
                     APP.timer.timerConcluded();
                 }
             }, 1000);
-            console.log(APP.timer.currentSession);
         },
         pauseTimer() {
             clearInterval(APP.timer.timerInterval);
@@ -130,10 +130,8 @@ const APP = {
     importPref() {
         const preferences = Model.query(APP.prefKey);
         if (preferences) APP.pref = preferences;
-        console.log(APP.pref?.colorScheme);
     },
     exportPref() {
-        console.log(APP.pref);
         Model.save(APP.prefKey, APP.pref);
     },
     importItemsFromStorage() {

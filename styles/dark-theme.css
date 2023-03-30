@@ -3,7 +3,7 @@ html {
     --white: hsl(232, 24%, 19%);
     --timer-container-bgc: var(--white);
     --Very-Dark-Desaturated-Blue: hsl(235, 24%, 19%);
-    --Light-Grayish-Blue: hsl(234, 39%, 85%);
+    --Light-Grayish-Blue: hsla(233, 11%, 84%, 0.7);
     --Light-Grayish-Blue-hover: hsl(236, 33%, 92%);
     --Dark-Grayish-Blue: hsl(234, 11%, 52%);
     --border-color: hsl(236, 13%, 26%);

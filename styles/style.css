@@ -332,6 +332,7 @@ main {
     max-width: 144rem;
     margin: auto;
     margin-inline: 2rem;
+    margin-inline: auto;
     margin-block-start: 10rem;
     padding-block-start: 6rem;
     position: relative;

@@ -209,9 +209,11 @@ const UI = {
         timerTypeHighlightClass: "study-rest-btn-highlighted",
     },
     helpers: {
-        theme: {
+        halt: {
             haltSwitchingThemeFor: 500,
             switchingThemeHalted: false,
+            haltStartBtnFor: 200,
+            startBtnHalted: false,
         },
         formatTime(timeInSeconds) {
             const minutes = Math.trunc(timeInSeconds / 60);
@@ -521,11 +523,11 @@ const UI = {
     initEventListeners() {
         document.querySelector("#mode-btn").addEventListener("click", () => {
             // Prevents flashes when switching theme quickly using for example keyboard when tabbing over the button
-            if (UI.helpers.theme.switchingThemeHalted) return;
-            UI.helpers.theme.switchingThemeHalted = true;
+            if (UI.helpers.halt.switchingThemeHalted) return;
+            UI.helpers.halt.switchingThemeHalted = true;
             setTimeout(() => {
-                UI.helpers.theme.switchingThemeHalted = false;
-            }, UI.helpers.theme.haltSwitchingThemeFor);
+                UI.helpers.halt.switchingThemeHalted = false;
+            }, UI.helpers.halt.haltSwitchingThemeFor);
 
             UI.eventHandlers.switchThemeBtnHandler();
         });
@@ -536,6 +538,12 @@ const UI = {
             UI.eventHandlers.restTimerBtnHandler();
         });
         UI.DOM.StartTimerBtn.addEventListener("click", () => {
+            if (UI.helpers.halt.startBtnHalted) return;
+            UI.helpers.halt.startBtnHalted = true;
+            setTimeout(() => {
+                UI.helpers.halt.startBtnHalted = false;
+            }, UI.helpers.halt.haltStartBtnFor);
+
             UI.eventHandlers.startTimerBtnHandler();
         });
         UI.DOM.todoForm.addEventListener("submit", (e) => {

@@ -601,7 +601,7 @@ const UI = {
         UI.initTheme();
         UI.timer.initTimer();
         UI.initEventListeners();
-        UI.fetchQuote();
+        // UI.fetchQuote();
         UI.updateUI();
     },
 };

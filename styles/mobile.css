@@ -13,4 +13,8 @@
     .mode-btn-rotate {
         transform: none;
     }
+    #info {
+        font-size: 1.6rem;
+        line-height: 1.7;
+    }
 }

@@ -3,7 +3,9 @@
     cursor: pointer;
     border-bottom: 1px solid transparent;
 }
-
+.btn:focus-visible {
+    border-bottom: 1px solid var(--blue);
+}
 #new-todo-input {
     padding-inline-start: 6rem;
     color: var(--input-form-color);
@@ -100,4 +102,7 @@ li.todo-list-item span {
 .link:active,
 .link:focus-visible {
     border-bottom: 1px solid var(--blue);
+}
+.credits-link {
+    font-weight: bold;
 }

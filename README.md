@@ -9,4 +9,4 @@ Study in an efficient way by utilizing the Pomodoro technique
 -   [ ] Implement ability to change time of each session
 -   [ ] Add login feature so users can save their work
 -   [ ] Give users ability to watch their stats
--   [ ] Give proper credits
+-   [x] Give proper credits

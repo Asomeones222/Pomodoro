@@ -75,6 +75,7 @@ html {
     --todo-list-item-border-color: hsl(235, 30%, 92%);
     --todo-cross-btn-brightness: 1;
     --footer-bgc: #f9f9f9;
+    --credits-bgc: #f0f0f0;
 }
 body {
     font-size: 1.8rem;
@@ -354,4 +355,8 @@ main {
     list-style: none;
     display: flex;
     gap: 4rem;
+}
+#info {
+    max-width: 100rem;
+    margin-inline: 2rem;
 }

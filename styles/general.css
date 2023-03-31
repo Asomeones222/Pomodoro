@@ -47,7 +47,9 @@ li.todo-list-item span {
     color: var(--Light-Grayish-Blue);
     text-decoration: line-through;
 }
-
+.todo-list-item--completed .todo-check-btn:focus-visible {
+    filter: brightness(0.9);
+}
 .todo-list-settings-btn {
     cursor: pointer;
 }
@@ -76,14 +78,16 @@ li.todo-list-item span {
     padding: 1rem;
     background-repeat: no-repeat;
     background-position: center;
+    transform: scale(1.1);
 }
 .todo-check-btn:focus-visible {
     border: 1px solid #68c9fa;
 }
 .todo-list-item--completed .todo-check-btn {
     border: none;
-    background-image: url("../images/icon-check.svg"),
-        linear-gradient(135deg, #68c9fa 0%, #ad72f1 100%);
+    background-image: url("../images/icon-check.svg");
+    background-color: #616592;
+    /* filter: invert(1); */
 }
 .todo-cross-btn {
     justify-self: center;

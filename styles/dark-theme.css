@@ -48,3 +48,6 @@ dd {
 #otro-blockquote {
     background: var(--timer-container-before-bgc);
 }
+.todo-list-item--completed .todo-check-btn {
+    border: 1px solid var(--Light-Grayish-Blue);
+}

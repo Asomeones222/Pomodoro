@@ -331,7 +331,7 @@ const UI = {
             });
         },
         timerConcluded() {
-            const timerConcludedAudio = new Audio("../sounds/sfx-2.wav");
+            const timerConcludedAudio = new Audio("../sounds/concluded.wav");
             timerConcludedAudio.play();
 
             UI.timer.switchSession();
@@ -479,7 +479,7 @@ const UI = {
         },
         startTimerBtnHandler() {
             if (!UI.permissions.notifications) UI.initPermissions();
-            const sfx = new Audio("../sounds/tap-5.wav");
+            const sfx = new Audio("../sounds/tick.wav");
             if (!APP.timer.running) {
                 UI.timer.startTimer();
             } else {

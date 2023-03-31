@@ -450,7 +450,6 @@ const UI = {
             const quote = await (
                 await fetch("https://api.quotable.io/random")
             ).json();
-            console.log(quote);
             UI.DOM.quote.quoteTextElement.textContent = quote.content;
             UI.DOM.quote.quoteeElement.textContent = quote.author;
         } catch (err) {
@@ -458,6 +457,11 @@ const UI = {
         } finally {
             UI.DOM.quote.quoteContainerElement.style.filter = "opacity(1)";
         }
+    },
+    startQuoteReftecher() {
+        setInterval(() => {
+            UI.fetchQuote();
+        }, 30 * 60 * 1000);
     },
     eventHandlers: {
         switchThemeBtnHandler() {
@@ -601,7 +605,8 @@ const UI = {
         UI.initTheme();
         UI.timer.initTimer();
         UI.initEventListeners();
-        // UI.fetchQuote();
+        UI.fetchQuote();
+        UI.startQuoteReftecher();
         UI.updateUI();
     },
 };

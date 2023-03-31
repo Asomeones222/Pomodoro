@@ -359,4 +359,5 @@ main {
 #info {
     max-width: 100rem;
     margin-inline: 2rem;
+    margin-block-start: 12rem;
 }

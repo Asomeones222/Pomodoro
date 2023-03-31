@@ -360,9 +360,9 @@ const UI = {
         const todoItemHTML = `<li class="todo-list-item todo-check ${
             status ? UI.classes.todoItemCompleted : ""
         }" data-id="${id}">
-          <button class="todo-check-btn btn"></button>
+          <button class="todo-check-btn btn" aria-label="Mark item as done"></button>
           <span title="${title}">${truncatedContent}</span>
-          <button class="todo-cross-btn btn"></button>
+          <button class="todo-cross-btn btn" aria-label="Delete item"></button>
         </li>`;
         return todoItemHTML;
     },

@@ -479,12 +479,13 @@ const UI = {
         },
         startTimerBtnHandler() {
             if (!UI.permissions.notifications) UI.initPermissions();
-
+            const sfx = new Audio("../sounds/tap-5.wav");
             if (!APP.timer.running) {
                 UI.timer.startTimer();
             } else {
                 UI.timer.pauseTimer();
             }
+            // sfx.play();
         },
         todoFormHandler() {
             // UI.appendedItemToContainerFromUser(UI.DOM.todoItemInput.value.trim());

@@ -485,7 +485,7 @@ const UI = {
             } else {
                 UI.timer.pauseTimer();
             }
-            // sfx.play();
+            sfx.play();
         },
         todoFormHandler() {
             // UI.appendedItemToContainerFromUser(UI.DOM.todoItemInput.value.trim());

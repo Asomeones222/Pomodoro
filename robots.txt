@@ -1,6 +1,3 @@
 user-agent: *
-disallow: /images/
 disallow: /pages/
-disallow: /styles/
-disallow: /sounds/
 
